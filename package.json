@@ -30,6 +30,7 @@
     "6to5": "^3.3.3",
     "browserify": "^8.1.1",
     "chai": "^1.10.0",
+    "d3": "^3.5.5",
     "del": "^1.1.1",
     "esperanto": "^0.6.7",
     "gulp": "^3.8.10",
@@ -52,7 +53,6 @@
     "run-sequence": "^1.0.2",
     "sinon": "^1.12.2",
     "sinon-chai": "^2.6.0",
-    "vinyl-source-stream": "^1.0.0",
-    "d3": "^3.5.5"
+    "vinyl-source-stream": "^1.0.0"
   }
 }

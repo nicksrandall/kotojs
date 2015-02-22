@@ -7,6 +7,11 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 })(this, function () {
   "use strict";
 
+  /**
+   * Simple Assertion function
+   * @param  {anything} test    Anything that will evaluate to true of false.
+   * @param  {string} message The error message to send if `test` is false
+   */
   function kotoAssert(test, message) {
     if (test) {
       return;
@@ -15,39 +20,112 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
   }
 
   var Chart = (function () {
-    function Chart(selection, chartOptions) {
+    /**
+     * Set up a chart instance.
+     *
+     * For charts that are defined as extensions of other charts using
+     * `Chart.extend`, each chart's `constructor` method will be invoked starting
+     * with the "oldest" ancestor.
+     */
+    function Chart(selection) {
       _classCallCheck(this, Chart);
 
-      this.base = selection;
-      this.hasDrawn = false;
+      this.base = selection; // Container for chart @type {d3.selection}.
+      this.hasDrawn = false; // Has this chart been drawn at lease once?
+
+      // private
       this._layers = {};
       this._attached = {};
       this._events = {};
-
-      if (chartOptions && chartOptions.transform) {
-        this.transform = chartOptions.transform;
-      }
     }
 
     _prototypeProperties(Chart, null, {
       transform: {
+
+        /**
+         * A "hook" method that you may define to modify input data before it is used
+         * to draw the chart's layers and attachments. This method will be used by all
+         * sub-classes.
+         *
+         * Note: you will most likely never call this method directly, but rather
+         * include it as part of a chart definition, and then rely on d3.chart to
+         * invoke it when you draw the chart with {@link Chart#draw}.
+         *
+         * @param {Array} data Input data provided to @link Chart#draw}.
+         * @returns {mixed} Data to be used in drawing the chart's layers and
+         *                  attachments.
+         */
         value: function transform(data) {
           return data;
         },
         writable: true,
         configurable: true
       },
+      demux: {
+
+        /**
+         * A "hook" method that you may define to choose which mutation of the input
+         * data is sent to which of the attached charts (by name). This method will
+         * be used by all sub-classes. This only applies to charts that use the
+         * {@link Chart#attach} method.
+         *
+         * Note: you will most likely never call this method directly, but rather
+         * include it as part of a chart definition, and then rely on d3.chart to
+         * invoke it when you draw the chart with {@link Chart#draw}.
+         *
+         * @param {String} data Name of attached chart defined in {@link Chart#attach}.
+         * @param {Array} data Input data provided to {@link Chart#draw}.
+         * @returns {mixed} Data to be used in drawing the chart's layers and
+         *                  attachments.
+         */
+        value: function demux(name, data) {
+          return data;
+        },
+        writable: true,
+        configurable: true
+      },
       preDraw: {
+
+        /**
+         * A "hook" method that will allow you to run some arbitrary code before
+         * {@link Chart#draw}. This will run everytime {@link Chart#draw} is called.
+         *
+         * Note: you will most likely never call this method directly, but rather
+         * include it as part of a chart definition, and then rely on d3.chart to
+         * invoke it when you draw the chart with {@link Chart#draw}.
+         *
+         * @param  {[type]} data [description]
+         * @return {[type]}      [description]
+         */
         value: function preDraw() {},
         writable: true,
         configurable: true
       },
       postDraw: {
+
+        /**
+         * A "hook" method that will allow you to run some arbitrary code after
+         * {@link Chart#draw}. This will run everytime {@link Chart#draw} is called.
+         *
+         * Note: you will most likely never call this method directly, but rather
+         * include it as part of a chart definition, and then rely on d3.chart to
+         * invoke it when you draw the chart with {@link Chart#draw}.
+         *
+         * @param  {[type]} data [description]
+         * @return {[type]}      [description]
+         */
         value: function postDraw() {},
         writable: true,
         configurable: true
       },
       unlayer: {
+
+        /**
+         * Remove a layer from the chart.
+         *
+         * @param {String} name The name of the layer to remove.
+         * @returns {Layer} The layer removed by this operation.
+         */
         value: function unlayer(name) {
           var layer = this.layer(name);
 
@@ -60,6 +138,32 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       layer: {
+
+        /**
+         * Interact with the chart's {@link Layer|layers}.
+         *
+         * If only a `name` is provided, simply return the layer registered to that
+         * name (if any).
+         *
+         * If a `name` and `selection` are provided, treat the `selection` as a
+         * previously-created layer and attach it to the chart with the specified
+         * `name`.
+         *
+         * If all three arguments are specified, initialize a new {@link Layer} using
+         * the specified `selection` as a base passing along the specified `options`.
+         *
+         * The {@link Layer.draw} method of attached layers will be invoked
+         * whenever this chart's {@link Chart#draw} is invoked and will receive the
+         * data (optionally modified by the chart's {@link Chart#transform} method.
+         *
+         * @param {String} name Name of the layer to attach or retrieve.
+         * @param {d3.selection|Layer} [selection] The layer's base or a
+         *        previously-created {@link Layer}.
+         * @param {Object} [options] Options to be forwarded to {@link Layer|the Layer
+         *        constructor}
+         *
+         * @returns {Layer}
+         */
         value: function layer(name, selection, options) {
           var layer;
 
@@ -91,6 +195,19 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       attach: {
+
+        /**
+         * Register or retrieve an "attachment" Chart. The "attachment" chart's `draw`
+         * method will be invoked whenever the containing chart's `draw` method is
+         * invoked.
+         *
+         * @param {String} attachmentName Name of the attachment
+         * @param {Chart} [chart] koto to register as a mix in of this chart. When
+         *        unspecified, this method will return the attachment previously
+         *        registered with the specified `attachmentName` (if any).
+         *
+         * @returns {Chart} Reference to this chart (chainable).
+         */
         value: function attach(attachmentName, chart) {
           if (arguments.length === 1) {
             return this._attached[attachmentName];
@@ -103,6 +220,19 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       draw: {
+
+        /**
+         * Update the chart's representation in the DOM, drawing all of its layers and
+         * any "attachment" charts (as attached via {@link Chart#attach}).
+         *
+         * Note: The first time you call this method, the property `hasDrawn` will be
+         * set to true. This is helpful if you want to only run some code on the first
+         * time the chart is drawn.
+         *
+         * @param {Object} data Data to pass to the {@link Layer#draw|draw method} of
+         *        this cart's {@link Layer|layers} (if any) and the {@link
+         *        Chart#draw|draw method} of this chart's attachments (if any).
+         */
         value: function draw(rawData) {
           var layerName, attachmentName, attachmentData;
 
@@ -131,6 +261,30 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       on: {
+
+        /**
+         * Function invoked with the context specified when the handler was bound (via
+         * {@link Chart#on} {@link Chart#once}).
+         *
+         * @callback ChartEventHandler
+         * @param {...*} arguments Invoked with the arguments passed to {@link
+         *         Chart#trigger}
+         */
+
+        /**
+         * Subscribe a callback function to an event triggered on the chart. See {@link
+         * Chart#once} to subscribe a callback function to an event for one occurence.
+         *
+         * @externalExample {runnable} chart-on
+         *
+         * @param {String} name Name of the event
+         * @param {ChartEventHandler} callback Function to be invoked when the event
+         *        occurs
+         * @param {Object} [context] Value to set as `this` when invoking the
+         *        `callback`. Defaults to the chart instance.
+         *
+         * @returns {Chart} A reference to this chart (chainable).
+         */
         value: function on(name, callback, context) {
           var events = this._events[name] || (this._events[name] = []);
           events.push({
@@ -144,6 +298,23 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       once: {
+
+        /**
+         * Subscribe a callback function to an event triggered on the chart. This
+         * function will be invoked at the next occurance of the event and immediately
+         * unsubscribed. See {@link Chart#on} to subscribe a callback function to an
+         * event indefinitely.
+         *
+         * @externalExample {runnable} chart-once
+         *
+         * @param {String} name Name of the event
+         * @param {ChartEventHandler} callback Function to be invoked when the event
+         *        occurs
+         * @param {Object} [context] Value to set as `this` when invoking the
+         *        `callback`. Defaults to the chart instance
+         *
+         * @returns {Chart} A reference to this chart (chainable)
+         */
         value: function once(name, callback, context) {
           var self = this;
           var once = function () {
@@ -156,6 +327,24 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       off: {
+
+        /**
+         * Unsubscribe one or more callback functions from an event triggered on the
+         * chart. When no arguments are specified, *all* handlers will be unsubscribed.
+         * When only a `name` is specified, all handlers subscribed to that event will
+         * be unsubscribed. When a `name` and `callback` are specified, only that
+         * function will be unsubscribed from that event. When a `name` and `context`
+         * are specified (but `callback` is omitted), all events bound to the given
+         * event with the given context will be unsubscribed.
+         *
+         * @externalExample {runnable} chart-off
+         *
+         * @param {String} [name] Name of the event to be unsubscribed
+         * @param {ChartEventHandler} [callback] Function to be unsubscribed
+         * @param {Object} [context] Contexts to be unsubscribe
+         *
+         * @returns {Chart} A reference to this chart (chainable).
+         */
         value: function off(name, callback, context) {
           var names, n, events, event, i, j;
 
@@ -197,6 +386,18 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       trigger: {
+
+        /**
+         * Publish an event on this chart with the given `name`.
+         *
+         * @externalExample {runnable} chart-trigger
+         *
+         * @param {String} name Name of the event to publish
+         * @param {...*} arguments Values with which to invoke the registered
+         *        callbacks.
+         *
+         * @returns {Chart} A reference to this chart (chainable).
+         */
         value: function trigger(name) {
           var args = Array.prototype.slice.call(arguments, 1);
           var events = this._events[name];
@@ -221,6 +422,34 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
   var lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
 
+  /**
+   * Loop through handers and call them on selection
+   * @param {d3.selection} selection The node to run the handler on.
+   *                                  it could be an `d3.transition` selection
+   * @param {lifecycle event} handlers A function to call for that layers named
+   *                           				 lifecycle event.
+   */
+  function selectionHandler(selection, handlers) {
+    var idx, len;
+    for (idx = 0, len = handlers.length; idx < len; ++idx) {
+      // Attach a reference to the parent chart so the selection's
+      // `chart` method will function correctly.
+      selection._chart = handlers[idx].chart || this._base._chart;
+      selection.call(handlers[idx].callback);
+    }
+  }
+
+  /**
+   * Create a layer using the provided `base`. The layer instance is *not*
+   * exposed to d3.chart users. Instead, its instance methods are mixed in to the
+   * `base` selection it describes; users interact with the instance via these
+   * bound methods.
+   *
+   * @private
+   * @class
+   *
+   * @param {d3.selection} base The containing DOM node for the layer.
+   */
   var Layer = (function () {
     function Layer(base) {
       _classCallCheck(this, Layer);
@@ -231,6 +460,13 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
     _prototypeProperties(Layer, null, {
       dataBind: {
+
+        /**
+         * Invoked by {@link Layer#draw} to join data with this layer's DOM nodes. This
+         * implementation is "virtual"--it *must* be overridden by Layer instances.
+         *
+         * @param {Array} data Value passed to {@link Layer#draw}
+         */
         value: function dataBind() {
           kotoAssert(false, "Layers must specify a dataBind method.");
         },
@@ -238,6 +474,12 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       insert: {
+
+        /**
+         * Invoked by {@link Layer#draw} in order to insert new DOM nodes into this
+         * layer's `base`. This implementation is "virtual"--it *must* be overridden by
+         * Layer instances.
+         */
         value: function insert() {
           kotoAssert(false, "Layers must specify an `insert` method.");
         },
@@ -245,6 +487,18 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       on: {
+
+        /**
+         * Subscribe a handler to a "lifecycle event". These events (and only these
+         * events) are triggered when {@link Layer#draw} is invoked--see that method
+         * for more details on lifecycle events.
+         *
+         * @param {String} eventName Identifier for the lifecycle event for which to
+         *        subscribe.
+         * @param {Function} handler Callback function
+         *
+         * @returns {d3.selection} Reference to the layer's base.
+         */
         value: function on(eventName, handler, options) {
           options = options || {};
 
@@ -263,6 +517,17 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       off: {
+
+        /**
+         * Unsubscribe the specified handler from the specified event. If no handler is
+         * supplied, remove *all* handlers from the event.
+         *
+         * @param {String} eventName Identifier for event from which to remove
+         *        unsubscribe
+         * @param {Function} handler Callback to remove from the specified event
+         *
+         * @returns {d3.selection} Reference to the layer's base.
+         */
         value: function off(eventName, handler) {
           var handlers = this._handlers[eventName];
           var idx;
@@ -289,17 +554,29 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       draw: {
+
+        /**
+         * Render the layer according to the input data: Bind the data to the layer
+         * (according to {@link Layer#dataBind}, insert new elements (according to
+         * {@link Layer#insert}, make lifecycle selections, and invoke all relevant
+         * handlers (as attached via {@link Layer#on}) with the lifecycle selections.
+         *
+         * - update
+         * - update:transition
+         * - enter
+         * - enter:transition
+         * - exit
+         * - exit:transition
+         *
+         * @param {Array} data Data to drive the rendering.
+         */
         value: function draw(data) {
-          var bound, entering, events, selection, method, handlers, eventName, idx, len;
+          var bound, entering, events, selection, method, handlers, transitionHandlers, eventName;
 
           bound = this.dataBind.call(this._base, data);
 
-          // Although `bound instanceof d3.selection` is more explicit, it fails
-          // in IE8, so we use duck typing to maintain compatability.
-
-          // d3cAssert(bound && bound.call === d3.selection.prototype.call,
-          //   'Invalid selection defined by `Layer#dataBind` method.');
-          // d3cAssert(bound.enter, 'Layer selection not properly bound.');
+          kotoAssert(bound instanceof d3.selection, "Invalid selection defined by `Layer#dataBind` method.");
+          kotoAssert(bound.enter, "Layer selection not properly bound.");
 
           entering = bound.enter();
           entering._chart = this._base._chart;
@@ -347,30 +624,19 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
             // it fails in IE8, so we use duck typing to maintain
             // compatability.
 
-            // d3cAssert(selection &&
-            //   selection.call === d3.selection.prototype.call,
-            //   'Invalid selection defined for '' + eventName +
-            //   '' lifecycle event.');
+            kotoAssert(selection && selection instanceof d3.selection, "Invalid selection defined for ${eventName} lifecycle event.");
 
             handlers = this._handlers[eventName];
 
             if (handlers) {
-              for (idx = 0, len = handlers.length; idx < len; ++idx) {
-                // Attach a reference to the parent chart so the selection's
-                // `chart` method will function correctly.
-                selection._chart = handlers[idx].chart || this._base._chart;
-                selection.call(handlers[idx].callback);
-              }
+              selectionHandler.call(this, selection, handlers);
             }
 
-            handlers = this._handlers[eventName + ":transition"];
+            transitionHandlers = this._handlers[eventName + ":transition"];
 
             if (handlers && handlers.length) {
               selection = selection.transition();
-              for (idx = 0, len = handlers.length; idx < len; ++idx) {
-                selection._chart = handlers[idx].chart || this._base._chart;
-                selection.call(handlers[idx].callback);
-              }
+              selectionHandler.call(this, selection, transitionHandlers);
             }
           }
         },
@@ -402,18 +668,37 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
     _prototypeProperties(Options, null, {
       get: {
+        /**
+         * Get option with given name.
+         * @param  {string} name the name of the option.
+         * @return {Object}      The option definition of the option with given name.
+         */
         value: function get(name) {
-          kotoAssert(this._options[name].value, "no option with that name");
-          return this._options[name].value;
+          kotoAssert(this._options[name], "no option with that name");
+          return this._options[name];
         },
         writable: true,
         configurable: true
       },
       set: {
-        value: function set(object) {
+
+        /**
+         * Set create of set option defintion with geven name (or key).
+         * @param {mixed} nameOrObject This can either be an object with key of option name(s)
+         *                             or, it can be a string with the option name.
+         * @param {Object} object      The option definition. Only used if used a named string
+         *                             as the first argument.
+         */
+        value: function set(nameOrObject, object) {
           var key;
-          for (key in object) {
-            this._options[key] = object[key];
+          if (arguments.length === 1) {
+            for (key in nameOrObject) {
+              kotoAssert(this._options[key], "no option with that name");
+              this._options[key] = nameOrObject[key];
+            }
+          } else {
+            kotoAssert(this._options[nameOrObject], "no option with that name");
+            this._options[nameOrObject] = object[key];
           }
           return this;
         },
@@ -421,6 +706,13 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
         configurable: true
       },
       remove: {
+
+        /**
+         * Remove an option item. This is helpful if you are inheriting from a chart
+         * and want to remove configurable options that have been inherited.
+         * @param  {string} name The name of the option definition you want to remove.
+         * @return {option}      Instance of {@link Option} (chainable).
+         */
         value: function remove(name) {
           delete this._options[name];
           return this;
@@ -435,6 +727,14 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
   kotoAssert(d3, "d3.js is required");
 
+  /**
+   * Registry {@link Chart} defintions to be used later.
+   * @class
+   *
+   * @param {Class} Options The Options class.
+   * @param {Class} Layer The Layer class.
+   * @param {Class} Chart The Chart class.
+   */
   var Koto = (function () {
     function Koto(Options, Layer, Chart) {
       _classCallCheck(this, Koto);
@@ -448,6 +748,25 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
     _prototypeProperties(Koto, null, {
       chart: {
+
+        /**
+         * Takes a name and a function that returns a chart definiion (class).
+         * It registeres that chart defintion with given name and makes it available
+         * to the `d3.seletion.chart` method.
+         *
+         * If function is called with no parameters, the list of registered charts is
+         * returned.
+         *
+         * If the function is only called with 'name' parameter, the chart definition
+         * registered with that name is returned.
+         *
+         * If the function is called with 'name' and 'classFn' parameter, the chart
+         * definition is registered (or overwritten) with the given name.
+         *
+         * @param  {string} name Name of chart to get or register.
+         * @param  {function} classFn A function that returns a chart.
+         * @return {Chart} The chart registered with given name (if any).
+         */
         value: function chart(name, classFn) {
           var baseChart;
           if (arguments.length === 0) {
@@ -473,11 +792,23 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
   var koto = new Koto(Options, Layer, Chart);
 
+  /**
+   * d3.js extensions
+   */
 
-  //**********************************************************************************
-  // d3 extensions
-  //**********************************************************************************
+  /**
+   * Instantiate a chart or return the chart that the current selection belongs
+   * to.
+   *
+   * @param {String} [chartName] The name of the chart to instantiate. If the
+   *        name is unspecified, this method will return the chart that the
+   *        current selection belongs to.
+   * @param {mixed} options The options to use when instantiated the new chart.
+   *        See {@link Chart} for more information.
+   */
   d3.selection.prototype.chart = function (chartName, options) {
+    // Without an argument, attempt to resolve the current selection's
+    // containing d3.chart.
     if (arguments.length === 0) {
       return this._chart;
     }
@@ -485,12 +816,22 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
     return new ChartCtor(this, options);
   };
 
+  // Implement the zero-argument signature of `d3.selection.prototype.chart`
+  // for all selection types.
   d3.selection.enter.prototype.chart = function () {
     return this._chart;
   };
-
   d3.transition.prototype.chart = d3.selection.enter.prototype.chart;
 
+  /**
+   * Create a new layer on the d3 selection from which it is called.
+   *
+   * @static
+   *
+   * @param {Object} [options] Options to be forwarded to {@link Layer|the Layer
+   *        constructor}
+   * @returns {d3.selection}
+   */
   d3.selection.prototype.layer = function (options) {
     var layer = new Layer(this);
     var eventName;
