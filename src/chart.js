@@ -1,3 +1,5 @@
+import kotoAssert from './assert.js';
+
 export default class Chart {
 	constructor(selection, chartOptions) {
 		this.base = selection;

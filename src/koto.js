@@ -1,6 +1,9 @@
+import kotoAssert from './assert.js';
 import Chart from './chart.js';
 import Layer from './layer.js';
 import Options from './options.js';
+
+kotoAssert(d3, 'd3.js is required');
 
 class Koto {
   constructor(Options, Layer, Chart) {
@@ -47,5 +50,28 @@ d3.selection.enter.prototype.chart = function() {
 };
 
 d3.transition.prototype.chart = d3.selection.enter.prototype.chart;
+
+d3.selection.prototype.layer = function(options) {
+	var layer = new Layer(this);
+	var eventName;
+
+	// Set layer methods (required)
+	layer.dataBind = options.dataBind;
+	layer.insert = options.insert;
+
+	// Bind events (optional)
+	if ('events' in options) {
+		for (eventName in options.events) {
+			layer.on(eventName, options.events[eventName]);
+		}
+	}
+
+	// Mix the public methods into the D3.js selection (bound appropriately)
+	this.on = function() { return layer.on.apply(layer, arguments); };
+	this.off = function() { return layer.off.apply(layer, arguments); };
+	this.draw = function() { return layer.draw.apply(layer, arguments); };
+
+	return this;
+};
 
 export default koto;

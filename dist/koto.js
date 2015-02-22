@@ -7,6 +7,13 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 })(this, function () {
   "use strict";
 
+  function kotoAssert(test, message) {
+    if (test) {
+      return;
+    }
+    throw new Error("[koto] " + message);
+  }
+
   var Chart = (function () {
     function Chart(selection, chartOptions) {
       _classCallCheck(this, Chart);
@@ -396,6 +403,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
     _prototypeProperties(Options, null, {
       get: {
         value: function get(name) {
+          kotoAssert(this._options[name].value, "no option with that name");
           return this._options[name].value;
         },
         writable: true,
@@ -424,6 +432,8 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
     return Options;
   })();
+
+  kotoAssert(d3, "d3.js is required");
 
   var Koto = (function () {
     function Koto(Options, Layer, Chart) {
@@ -480,6 +490,35 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
   };
 
   d3.transition.prototype.chart = d3.selection.enter.prototype.chart;
+
+  d3.selection.prototype.layer = function (options) {
+    var layer = new Layer(this);
+    var eventName;
+
+    // Set layer methods (required)
+    layer.dataBind = options.dataBind;
+    layer.insert = options.insert;
+
+    // Bind events (optional)
+    if ("events" in options) {
+      for (eventName in options.events) {
+        layer.on(eventName, options.events[eventName]);
+      }
+    }
+
+    // Mix the public methods into the D3.js selection (bound appropriately)
+    this.on = function () {
+      return layer.on.apply(layer, arguments);
+    };
+    this.off = function () {
+      return layer.off.apply(layer, arguments);
+    };
+    this.draw = function () {
+      return layer.draw.apply(layer, arguments);
+    };
+
+    return this;
+  };
 
   return koto;
 });

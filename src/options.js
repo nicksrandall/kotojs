@@ -1,3 +1,5 @@
+import kotoAssert from './assert.js';
+
 export default class Options {
 	constructor(...options) {
 		var i, key;
@@ -12,6 +14,7 @@ export default class Options {
 	}
 
 	get(name) {
+		kotoAssert(this._options[name].value, 'no option with that name');
 		return this._options[name].value;
 	}
 

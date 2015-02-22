@@ -1,3 +1,5 @@
+import kotoAssert from './assert.js';
+
 var lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
 
 export default class Layer {
