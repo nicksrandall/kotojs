@@ -64,13 +64,13 @@ export default class Layer {
 	 *        subscribe.
 	 * @param {Function} handler Callback function
 	 *
-	 * @returns {d3.selection} Reference to the layer's base.
+	 * @returns {Chart} Reference to the layer instance (chaining).
 	 */
 	on(eventName, handler, options) {
 		options = options || {};
 
 		kotoAssert(lifecycleRe.test(eventName),
-			'Unrecognized lifecycle event name specified to `Layer#on`: \'${eventName}\'.');
+			`Unrecognized lifecycle event name specified to 'Layer#on': '${eventName}'.`);
 
 		if (!(eventName in this._handlers)) {
 			this._handlers[eventName] = [];
@@ -79,7 +79,7 @@ export default class Layer {
 			callback: handler,
 			chart: options.chart || null
 		});
-		return this._base;
+		return this;
 	}
 
 	/**
@@ -90,7 +90,7 @@ export default class Layer {
 	 *        unsubscribe
 	 * @param {Function} handler Callback to remove from the specified event
 	 *
-	 * @returns {d3.selection} Reference to the layer's base.
+	 * @returns {Chart} Reference to the layer instance (chaining).
 	 */
 	off(eventName, handler) {
 
@@ -98,7 +98,7 @@ export default class Layer {
 		var idx;
 
 		kotoAssert(lifecycleRe.test(eventName),
-			'Unrecognized lifecycle event name specified to `Layer#on`: \'${eventName}\'.');
+			`Unrecognized lifecycle event name specified to 'Layer#on': '${eventName}'.`);
 
 		if (!handlers) {
 			return this._base;
@@ -114,7 +114,7 @@ export default class Layer {
 				handlers.splice(idx, 1);
 			}
 		}
-		return this._base;
+		return this;
 	}
 
 	/**
@@ -200,7 +200,7 @@ export default class Layer {
 			// compatability.
 
 			kotoAssert(selection && selection instanceof d3.selection,
-			  'Invalid selection defined for ${eventName} lifecycle event.');
+			  `Invalid selection defined for ${eventName} lifecycle event.`);
 
 			handlers = this._handlers[eventName];
 

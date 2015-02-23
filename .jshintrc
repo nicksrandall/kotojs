@@ -69,6 +69,7 @@
     "Chart": true,
     "Options": true,
     "d3": true,
-    "kotoAssert": true
+    "kotoAssert": true,
+    "console": true
   }
 }
