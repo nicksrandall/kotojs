@@ -9,4 +9,4 @@ A framework for creating reusable charts with [D3.js](http://d3js.org), written 
 [![devDependency Status](https://david-dm.org/nicksrandall/kotojs/dev-status.svg)](https://david-dm.org/nicksrandall/kotojs#info=devDependencies)
 
 # Thanks
-This project is HEAVILY inspired by the awesome work done by @jugglinmike and @iros and their project framework called [d3.chart](https://github.com/misoproject/d3.chart)
+This project is HEAVILY inspired by the awesome work done by @jugglinmike and @iros and their charting framework called [d3.chart](https://github.com/misoproject/d3.chart).

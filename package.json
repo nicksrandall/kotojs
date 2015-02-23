@@ -1,5 +1,5 @@
 {
-  "name": "kotojs",
+  "name": "koto",
   "version": "0.0.1",
   "description": "A d3 chart framework written in ES6",
   "main": "dist/kotojs.js",
