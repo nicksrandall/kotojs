@@ -1,7 +1,6 @@
 import kotoAssert from './assert.js';
 import Chart from './chart.js';
 import Layer from './layer.js';
-import Options from './options.js';
 
 /**
  * d3.js is a required dependancy.
@@ -18,10 +17,9 @@ kotoAssert(d3, 'd3.js is required');
  * @param {Class} Chart The Chart class.
  */
 class Koto {
-  constructor(Options, Layer, Chart) {
+  constructor(Layer, Chart) {
     this._registry = {};
 
-    this.Options = Options;
     this.Layer = Layer;
     this.Chart = Chart;
   }
@@ -61,7 +59,7 @@ class Koto {
   }
 }
 
-var koto = new Koto(Options, Layer, Chart);
+var koto = new Koto(Layer, Chart);
 
 /**
  * d3.js extensions
@@ -77,14 +75,14 @@ var koto = new Koto(Options, Layer, Chart);
  * @param {mixed} options The options to use when instantiated the new chart.
  *        See {@link Chart} for more information.
  */
-d3.selection.prototype.chart = function(chartName, options) {
+d3.selection.prototype.chart = function(chartName) {
 	// Without an argument, attempt to resolve the current selection's
 	// containing d3.chart.
   if (arguments.length === 0) {
     return this._chart;
   }
   var ChartCtor = koto.chart(chartName);
-  return new ChartCtor(this, options);
+  return new ChartCtor(this);
 };
 
 // Implement the zero-argument signature of `d3.selection.prototype.chart`

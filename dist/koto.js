@@ -717,83 +717,6 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 		return Layer;
 	})();
 
-	var Options = (function () {
-		function Options() {
-			for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
-				options[_key] = arguments[_key];
-			}
-
-			_classCallCheck(this, Options);
-
-			var i, key;
-			this._options = options[0];
-
-			for (i = 1; i < options.length; i++) {
-				for (key in options[i]) {
-					this._options[key] = options[i][key];
-				}
-			}
-		}
-
-		_prototypeProperties(Options, null, {
-			get: {
-				/**
-     * Get option with given name.
-     * @param  {string} name the name of the option.
-     * @return {Object}      The option definition of the option with given name.
-     */
-				value: function get(name) {
-					kotoAssert(this._options[name], "no option with that name");
-					return this._options[name];
-				},
-				writable: true,
-				configurable: true
-			},
-			set: {
-
-				/**
-     * Set create of set option defintion with geven name (or key).
-     * @param {mixed} nameOrObject This can either be an object with key of option name(s)
-     *                             or, it can be a string with the option name.
-     * @param {Object} object      The option definition. Only used if used a named string
-     *                             as the first argument.
-     */
-				value: function set(nameOrObject, object) {
-					var key;
-					if (arguments.length === 1) {
-						for (key in nameOrObject) {
-							kotoAssert(this._options[key], "no option with that name");
-							this._options[key] = nameOrObject[key];
-						}
-					} else {
-						kotoAssert(this._options[nameOrObject], "no option with that name");
-						this._options[nameOrObject] = object[key];
-					}
-					return this;
-				},
-				writable: true,
-				configurable: true
-			},
-			remove: {
-
-				/**
-     * Remove an option item. This is helpful if you are inheriting from a chart
-     * and want to remove configurable options that have been inherited.
-     * @param  {string} name The name of the option definition you want to remove.
-     * @return {option}      Instance of {@link Option} (chainable).
-     */
-				value: function remove(name) {
-					delete this._options[name];
-					return this;
-				},
-				writable: true,
-				configurable: true
-			}
-		});
-
-		return Options;
-	})();
-
 	kotoAssert(d3, "d3.js is required");
 
 	/**
@@ -805,12 +728,11 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
   * @param {Class} Chart The Chart class.
   */
 	var Koto = (function () {
-		function Koto(Options, Layer, Chart) {
+		function Koto(Layer, Chart) {
 			_classCallCheck(this, Koto);
 
 			this._registry = {};
 
-			this.Options = Options;
 			this.Layer = Layer;
 			this.Chart = Chart;
 		}
@@ -859,7 +781,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 		return Koto;
 	})();
 
-	var koto = new Koto(Options, Layer, Chart);
+	var koto = new Koto(Layer, Chart);
 
 	/**
   * d3.js extensions
@@ -875,14 +797,14 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
   * @param {mixed} options The options to use when instantiated the new chart.
   *        See {@link Chart} for more information.
   */
-	d3.selection.prototype.chart = function (chartName, options) {
+	d3.selection.prototype.chart = function (chartName) {
 		// Without an argument, attempt to resolve the current selection's
 		// containing d3.chart.
 		if (arguments.length === 0) {
 			return this._chart;
 		}
 		var ChartCtor = koto.chart(chartName);
-		return new ChartCtor(this, options);
+		return new ChartCtor(this);
 	};
 
 	// Implement the zero-argument signature of `d3.selection.prototype.chart`
