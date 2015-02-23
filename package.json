@@ -28,6 +28,7 @@
   "homepage": "https://github.com/nicksrandall/kotojs",
   "devDependencies": {
     "6to5": "^3.3.3",
+    "aight": "^2.1.1",
     "browserify": "^8.1.1",
     "chai": "^1.10.0",
     "d3": "^3.5.5",
@@ -49,6 +50,7 @@
     "gulp-uglifyjs": "^0.5.0",
     "isparta": "^1.0.1",
     "jshint-stylish": "^1.0.0",
+    "karma": "^0.12.31",
     "mocha": "^2.1.0",
     "run-sequence": "^1.0.2",
     "sinon": "^1.12.2",

@@ -7,6 +7,7 @@
 
   <!-- Polyfill (required by 6to5) -->
   <script src='../node_modules/6to5/browser-polyfill.js'></script>
+  <script src='../node_modules/aight/aight.js'></script>
 
   <!-- Testing libraries -->
   <script src='../node_modules/mocha/mocha.js'></script>
@@ -17,16 +18,17 @@
   <!-- Livereload -->
   <script src='http://localhost:35729/livereload.js'></script>
 
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
 
   <!-- Load the built library -->
   <script src='../tmp/__spec-build.js'></script>
 
   <!-- Add your tests here -->
-  <script src='unit/index.js'></script>
+  <script src='unit/chart.js'></script>
+  <script src='unit/kotojs.js'></script>
 </head>
 <body>
   <!-- Required for browser reporter -->
   <div id='mocha'></div>
+  <div id="test"></div>
 </body>
 </html>
