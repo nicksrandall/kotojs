@@ -18,7 +18,7 @@ const mainFile = manifest.main;
 const destinationFolder = path.dirname(mainFile);
 const exportFileName = path.basename(mainFile, path.extname(mainFile));
 
-require('gulp-release-tasks')(gulp);
+require('gulp-changelog-release')(gulp);
 
 // Remove the built files
 gulp.task('clean', function(cb) {
@@ -165,12 +165,3 @@ gulp.task('test-browser', ['build-in-sequence'], function() {
 
 // An alias of test
 gulp.task('default', ['test']);
-
-gulp.task('changelog', function () {
-  require('conventional-changelog')({
-    repository: 'https://github.com/nicksrandall/kotojs',
-    version: require('./package.json').version
-  }, function(err, log) {
-    $.file('CHANGELOG.md', log, { src: true }).pipe(gulp.dest('./'));
-  });
-});
