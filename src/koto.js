@@ -43,12 +43,16 @@ class Koto {
    * @return {Chart} The chart registered with given name (if any).
    */
   chart(name, classFn) {
-    var baseChart;
+    var baseChart, _Koto = this;
     if (arguments.length === 0) {
       return this._registry;
     } else if (arguments.length === 1) {
+      kotoAssert(this._registry[name], `no chart registered with name ${name}`);
       baseChart = this._registry[name];
-      kotoAssert(baseChart, `no chart registered with name ${name}`);
+      baseChart.extend = function (childName, childClassFn) {
+        _Koto._registry[childName] = childClassFn(baseChart);
+        return _Koto._registry[childName];
+      };
       return baseChart;
     } else {
       this._registry[name] = classFn(this.Chart);
