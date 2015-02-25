@@ -5,4 +5,3 @@ script: "gulp coverage"
 after_success:
   - npm install -g codeclimate-test-reporter coveralls
   - codeclimate < coverage/lcov.info
-  - coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
