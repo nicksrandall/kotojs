@@ -3,5 +3,6 @@ node_js:
   - "iojs"
 script: "gulp coverage"
 after_success:
+  - npm run coveralls
   - npm install -g codeclimate-test-reporter coveralls
   - codeclimate < coverage/lcov.info

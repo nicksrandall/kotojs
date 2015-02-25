@@ -498,16 +498,19 @@ describe('d3.layer', function() {
       });
     });
   });
+
   describe('events', function () {
     beforeEach(function () {
       var base = this.base = d3.select('#test');
       this.layer = new base.layer({});
     });
+
     describe('#on', function () {
       it('should returns the layer instance (chains)', function() {
         expect(this.layer.on('enter')).to.equal(this.layer);
       });
     });
+
     describe('#off', function () {
       it('should returns the layer instance (chains)', function() {
         expect(this.layer.off('enter')).to.equal(this.layer);
