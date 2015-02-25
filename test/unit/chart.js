@@ -7,7 +7,19 @@ describe('koto.Chart', function() {
 
   before(function () {
     koto.chart('test', function (Chart) {
-      return Chart;
+      return class Test extends Chart {
+        constructor(selection){
+          super(selection);
+
+          this.config('width', 500);
+          this.accessor('value', function (d) {
+            return d.value;
+          });
+          this.accessor('item', function (d) {
+            return d.item;
+          });
+        }
+      };
     });
   });
 
@@ -363,5 +375,82 @@ describe('koto.Chart', function() {
         expect(this.chart.off('e1')).to.equal(this.chart);
       });
     });
+  });
+
+  describe('#config', function () {
+    beforeEach(function () {
+      this.myChart = d3.select('#test').chart('test');
+    });
+
+    it('should get the specified default config value', function () {
+      expect(this.myChart.config('width')).to.equal(500);
+    });
+
+    it('should set new config values', function () {
+      this.myChart.config('color', 'blue');
+      expect(this.myChart.config('color')).to.equal('blue');
+    });
+
+    it('should override exsisting config values', function () {
+      this.myChart.config('width', 1000);
+      expect(this.myChart.config('width')).to.equal(1000);
+    });
+
+    it('should throw error when trying to access non-existent config item', function () {
+      expect(function () {
+        this.myChart.config('nothing');
+      }).to.throw(Error);
+    });
+
+    it('should set multiple config items when object is passed in', function () {
+      this.myChart.config({
+        width: 10,
+        height: 20,
+        color: 'green'
+      });
+
+      expect(this.myChart.config('width')).to.equal(10);
+      expect(this.myChart.config('height')).to.equal(20);
+      expect(this.myChart.config('color')).to.equal('green');
+    });
+
+  });
+
+describe('#accessor', function () {
+    beforeEach(function () {
+      this.myChart = d3.select('#test').chart('test');
+    });
+
+    it('should get the specified default config value', function () {
+      expect(this.myChart.accessor('value')).to.exist;
+    });
+
+    it('should override exsisting config values', function () {
+      var accessor = function (d) {
+        return d[1];
+      };
+      this.myChart.accessor('item', accessor);
+      expect(this.myChart.accessor('item')).to.equal(accessor);
+    });
+
+    it('should throw error when trying to access non-existent config item', function () {
+      expect(function () {
+        this.myChart.accessor('nothing');
+      }).to.throw(Error);
+    });
+
+    it('should set multiple config items when object is passed in', function () {
+      var func1 = function (d) { return d[0]; };
+      var func2 = function (d) { return d[1]; };
+
+      this.myChart.accessor({
+        value: func1,
+        item: func2
+      });
+
+      expect(this.myChart.accessor('value')).to.equal(func1);
+      expect(this.myChart.accessor('item')).to.equal(func2);
+    });
+
   });
 });
