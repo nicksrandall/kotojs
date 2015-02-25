@@ -120,7 +120,7 @@ class Chart {
    * @returns {Layer}
    */
   layer(name, selection, options) {
-    var layer;
+    var _layer;
 
     if (arguments.length === 1) {
       return this._layers[name];
@@ -141,13 +141,13 @@ class Chart {
       }
     }
 
-    layer = selection.layer(options);
+    _layer = selection.layer(options);
 
-    this._layers[name] = layer;
+    this._layers[name] = _layer;
 
     selection._chart = this;
 
-    return layer;
+    return _layer;
   }
 
   /**
@@ -260,11 +260,11 @@ class Chart {
    */
   once(name, callback, context) {
     var self = this;
-    var once = function() {
-      self.off(name, once);
+    var _once = function() {
+      self.off(name, _once);
       callback.apply(this, arguments);
     };
-    return this.on(name, once, context);
+    return this.on(name, _once, context);
   }
 
   /**

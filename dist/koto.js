@@ -165,18 +165,8 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      * @returns {Layer}
      */
 
-				value: (function (_layer) {
-					var _layerWrapper = function layer() {
-						return _layer.apply(this, arguments);
-					};
-
-					_layerWrapper.toString = function () {
-						return _layer.toString();
-					};
-
-					return _layerWrapper;
-				})(function (name, selection, options) {
-					var layer;
+				value: function layer(name, selection, options) {
+					var _layer;
 
 					if (arguments.length === 1) {
 						return this._layers[name];
@@ -195,14 +185,14 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 						}
 					}
 
-					layer = selection.layer(options);
+					_layer = selection.layer(options);
 
-					this._layers[name] = layer;
+					this._layers[name] = _layer;
 
 					selection._chart = this;
 
-					return layer;
-				}),
+					return _layer;
+				},
 				writable: true,
 				configurable: true
 			},
@@ -332,34 +322,24 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      * @returns {Chart} A reference to this chart (chainable)
      */
 
-				value: (function (_once) {
-					var _onceWrapper = function once() {
-						return _once.apply(this, arguments);
-					};
-
-					_onceWrapper.toString = function () {
-						return _once.toString();
-					};
-
-					return _onceWrapper;
-				})(function (name, callback, context) {
+				value: function once(name, callback, context) {
 					var self = this;
-					var once = (function (_once) {
-						var _onceWrapper = function once() {
-							return _once.apply(this, arguments);
+					var _once = (function (_once2) {
+						var _onceWrapper = function _once() {
+							return _once2.apply(this, arguments);
 						};
 
 						_onceWrapper.toString = function () {
-							return _once.toString();
+							return _once2.toString();
 						};
 
 						return _onceWrapper;
 					})(function () {
-						self.off(name, once);
+						self.off(name, _once);
 						callback.apply(this, arguments);
 					});
-					return this.on(name, once, context);
-				}),
+					return this.on(name, _once, context);
+				},
 				writable: true,
 				configurable: true
 			},
@@ -552,6 +532,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 			selection._chart = handlers[idx].chart || this._base._chart;
 			selection.call(handlers[idx].callback);
 		}
+		return selection;
 	}
 
 	/**
@@ -630,7 +611,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 						callback: handler,
 						chart: options.chart || null
 					});
-					return this;
+					return this._base;
 				},
 				writable: true,
 				configurable: true
@@ -669,7 +650,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 							handlers.splice(idx, 1);
 						}
 					}
-					return this;
+					return this._base;
 				},
 				writable: true,
 				configurable: true
@@ -751,14 +732,14 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 						handlers = this._handlers[eventName];
 
 						if (handlers) {
-							selectionHandler.call(this, selection, handlers);
+							selection = selectionHandler.call(this, selection, handlers);
 						}
 
 						transitionHandlers = this._handlers[eventName + ":transition"];
 
-						if (handlers && handlers.length) {
+						if (transitionHandlers && transitionHandlers.length) {
 							selection = selection.transition();
-							selectionHandler.call(this, selection, transitionHandlers);
+							selection = selectionHandler.call(this, selection, transitionHandlers);
 						}
 					}
 				},
@@ -814,12 +795,17 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      */
 
 				value: function chart(name, classFn) {
-					var baseChart;
+					var baseChart,
+					    _Koto = this;
 					if (arguments.length === 0) {
 						return this._registry;
 					} else if (arguments.length === 1) {
+						kotoAssert(this._registry[name], "no chart registered with name " + name);
 						baseChart = this._registry[name];
-						kotoAssert(baseChart, "no chart registered with name " + name);
+						baseChart.extend = function (childName, childClassFn) {
+							_Koto._registry[childName] = childClassFn(baseChart);
+							return _Koto._registry[childName];
+						};
 						return baseChart;
 					} else {
 						this._registry[name] = classFn(this.Chart);

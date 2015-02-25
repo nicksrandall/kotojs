@@ -3,6 +3,24 @@ import kotoAssert from './assert.js';
 var lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
 
 /**
+ * Loop through handers and call them on selection
+ * @param {d3.selection} selection The node to run the handler on.
+ *                                  it could be an `d3.transition` selection
+ * @param {lifecycle event} handlers A function to call for that layers named
+ *                           				 lifecycle event.
+ */
+function selectionHandler (selection, handlers) {
+	var idx, len;
+	for (idx = 0, len = handlers.length; idx < len; ++idx) {
+		// Attach a reference to the parent chart so the selection's
+		// `chart` method will function correctly.
+		selection._chart = handlers[idx].chart || this._base._chart;
+		selection.call(handlers[idx].callback);
+	}
+  return selection;
+}
+
+/**
  * Create a layer using the provided `base`. The layer instance is *not*
  * exposed to d3.chart users. Instead, its instance methods are mixed in to the
  * `base` selection it describes; users interact with the instance via these
@@ -122,9 +140,8 @@ class Layer {
 			selection,
 			method,
 			handlers,
-			eventName,
-      idx,
-      len;
+			transitionHandlers,
+			eventName;
 
 		bound = this.dataBind.call(this._base, data);
 
@@ -189,22 +206,14 @@ class Layer {
 			handlers = this._handlers[eventName];
 
 			if (handlers) {
-				for (idx = 0, len = handlers.length; idx < len; ++idx) {
-          // Attach a reference to the parent chart so the selection"s
-          // `chart` method will function correctly.
-          selection._chart = handlers[idx].chart || this._base._chart;
-          selection.call(handlers[idx].callback);
-        }
+				selection = selectionHandler.call(this, selection, handlers);
 			}
 
-			handlers = this._handlers[eventName + ':transition'];
+			transitionHandlers = this._handlers[eventName + ':transition'];
 
-			if (handlers && handlers.length) {
+			if (transitionHandlers && transitionHandlers.length) {
 				selection = selection.transition();
-        for (idx = 0, len = handlers.length; idx < len; ++idx) {
-          selection._chart = handlers[idx].chart || this._base._chart;
-          selection.call(handlers[idx].callback);
-        }
+				selection = selectionHandler.call(this, selection, transitionHandlers);
 			}
 		}
 	}
