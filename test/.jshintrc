@@ -64,6 +64,8 @@
   "wsh"           : false,
   "yui"           : false,
   "globals": {
+    "global": true,
+    "module": true,
     "koto": true,
     "d3": true,
     "console": true,
@@ -76,6 +78,7 @@
     "beforeEach": true,
     "afterEach": true,
     "it": true,
-    "expect": true
+    "expect": true,
+    "require": true
   }
 }

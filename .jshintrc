@@ -64,6 +64,7 @@
   "wsh"           : false,
   "yui"           : false,
   "globals": {
+    "global": true,
     "koto": true,
     "Layer": true,
     "Chart": true,

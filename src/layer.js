@@ -30,7 +30,7 @@ function selectionHandler (selection, handlers) {
  *
  * @param {d3.selection} base The containing DOM node for the layer.
  */
-export default class Layer {
+class Layer {
 	constructor(base) {
 		this._base = base;
 		this._handlers = {};
@@ -145,7 +145,7 @@ export default class Layer {
 		bound = this.dataBind.call(this._base, data);
 
 		kotoAssert(bound instanceof d3.selection,
-		  'Invalid selection defined by `Layer#dataBind` method.');
+      'Invalid selection defined by `Layer#dataBind` method.');
 		kotoAssert(bound.enter, 'Layer selection not properly bound.');
 
 		entering = bound.enter();
@@ -200,7 +200,7 @@ export default class Layer {
 			// compatability.
 
 			kotoAssert(selection && selection instanceof d3.selection,
-			  `Invalid selection defined for ${eventName} lifecycle event.`);
+        `Invalid selection defined for ${eventName} lifecycle event.`);
 
 			handlers = this._handlers[eventName];
 
@@ -217,3 +217,5 @@ export default class Layer {
 		}
 	}
 }
+
+export default Layer;

@@ -48,12 +48,10 @@ class Koto {
       return this._registry;
     } else if (arguments.length === 1) {
       baseChart = this._registry[name];
-      baseChart.extends = function (childName, childClassFn) {
-        this._registry[childName] = childClassFn(this._registry[name]);
-      };
+      kotoAssert(baseChart, `no chart registered with name ${name}`);
       return baseChart;
     } else {
-    	this._registry[name] = classFn(this.Chart);
+      this._registry[name] = classFn(this.Chart);
       return this._registry[name];
     }
   }

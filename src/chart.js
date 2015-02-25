@@ -8,7 +8,7 @@ import kotoAssert from './assert.js';
  * @param {d3.selection} selection The chart's "base" DOM node. This should
  *        contain any nodes that the chart generates.
  */
-export default class Chart {
+class Chart {
   constructor(selection) {
     this.base = selection; // Container for chart @type {d3.selection}.
       this.hasDrawn = false; // Has this chart been drawn at lease once?
@@ -415,3 +415,5 @@ export default class Chart {
     return this;
   }
 }
+
+export default Chart;

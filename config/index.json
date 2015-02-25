@@ -3,5 +3,5 @@
   "exportFileName": "koto",
   "entryFileName": "koto",
   "exportVarName": "koto",
-  "mochaGlobals": ["stub", "spy", "expect", "koto", "d3", "assert", "suite", "test"]
+  "mochaGlobals": ["stub", "spy", "describe", "it", "expect", "koto", "d3"]
 }
