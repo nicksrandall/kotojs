@@ -7,6 +7,7 @@ const path = require('path');
 const mkdirp = require('mkdirp');
 const babelify = require('babelify');
 const isparta = require('isparta');
+const esperanto = require('esperanto');
 const browserify = require('browserify');
 const runSequence = require('run-sequence');
 const source = require('vinyl-source-stream');
@@ -65,10 +66,22 @@ gulp.task('lint-test', function() {
 
 // Build two versions of the library
 gulp.task('build', ['lint-src', 'clean'], function(done) {
+  esperanto.bundle({
+    base: 'src',
+    entry: config.entryFileName,
+  }).then(function(bundle) {
+    var res = bundle.toUmd({
+      sourceMap: true,
+      sourceMapSource: config.entryFileName + '.js',
+      sourceMapFile: exportFileName + '.js',
+      name: config.exportVarName
+    });
+
     // Write the generated sourcemap
     mkdirp.sync(destinationFolder);
+    fs.writeFileSync(path.join(destinationFolder, exportFileName + '.js'), res.map.toString());
 
-    gulp.src('src/*.js')
+    $.file(exportFileName + '.js', res.code, { src: true })
       .pipe($.plumber())
       .pipe($.sourcemaps.init({ loadMaps: true }))
       .pipe($.babel({ blacklist: ['useStrict'] }))
@@ -82,6 +95,7 @@ gulp.task('build', ['lint-src', 'clean'], function(done) {
       }))
       .pipe(gulp.dest(destinationFolder))
       .on('end', done);
+  });
 });
 
 // Bundle our app for our unit tests

@@ -67,6 +67,7 @@
   },
   "babelBoilerplateOptions": {
     "entryFileName": "koto",
+    "exportVarName": "koto",
     "mochaGlobals": [
       "stub",
       "spy",

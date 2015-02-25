@@ -1,7 +1,0 @@
-{
-  "destinationFolder": "dist",
-  "exportFileName": "koto",
-  "entryFileName": "koto",
-  "exportVarName": "koto",
-  "mochaGlobals": ["stub", "spy", "describe", "it", "expect", "koto", "d3"]
-}
