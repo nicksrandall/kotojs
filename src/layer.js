@@ -79,7 +79,7 @@ class Layer {
 			callback: handler,
 			chart: options.chart || null
 		});
-		return this;
+		return this._base;
 	}
 
 	/**
@@ -114,7 +114,7 @@ class Layer {
 				handlers.splice(idx, 1);
 			}
 		}
-		return this;
+		return this._base;
 	}
 
 	/**
@@ -210,7 +210,7 @@ class Layer {
 
 			transitionHandlers = this._handlers[eventName + ':transition'];
 
-			if (handlers && handlers.length) {
+			if (transitionHandlers && transitionHandlers.length) {
 				selection = selection.transition();
 				selectionHandler.call(this, selection, transitionHandlers);
 			}

@@ -2,64 +2,17 @@ import koto from '../../src/koto';
 
 require('../charts/single.js');
 
-describe('koto.chart', function() {
+describe('koto.Chart', function() {
+  'use strict';
 
-	describe('constructor', function() {
-		it('should name the new chart as specified', function() {
-
-			var chart = koto.chart('test', function (Chart) {
-				return Chart;
-			});
-			expect(chart).to.equal(koto.chart('test'));
-		});
-
-		it('should instantiate the specified chart', function() {
-			var myChart = d3.select('#test').chart('test');
-			expect(myChart).to.be.an.instanceof(koto.Chart);
-		});
-
-		it('should set the instance\'s `base` property as the root d3 selection', function() {
-			var selection, myChart;
-			selection = d3.select('#test');
-			myChart = selection.chart('test');
-			expect(myChart.base).to.equal(selection);
-		});
-	});
-
-	describe('extend', function () {
-		it('should name the new chart as specified', function (){
-			var ExChart = koto.chart('test').extend('test2', function (Test) {
-				class Test2 extends Test {
-					constructor(selection) {
-						super(selection);
-					}
-				}
-				return Test2;
-			});
-			expect(ExChart).to.equal(koto.chart('test2'));
-		});
-
-    it('should create a new chart that inhertits from base chart', function () {
-      koto.chart('test').extend('test2', function (Test) {
-        class Test2 extends Test {
-          constructor(selection) {
-            super(selection);
-          }
-          method(value) {
-            this.test = value;
-          }
-        }
-        return Test2;
-      });
-
-      var extended = d3.select('#test2').chart('test2');
-
-      expect(extended).to.be.an.instanceof(koto.chart('test'));
+  before(function () {
+    koto.chart('test', function (Chart) {
+      return Chart;
     });
-	});
+  });
 
   describe('Attachments', function () {
-    before(function () {
+    beforeEach(function () {
       this.myChart = d3.select('#test').chart('test');
       this.attachmentChart = d3.select('body').chart('test');
       sinon.spy(this.attachmentChart, 'draw');
@@ -90,7 +43,7 @@ describe('koto.chart', function() {
         series2: [4, 5, 6]
       };
 
-      before(function () {
+      beforeEach(function () {
         this.attachmentChart2 = d3.select('body').chart('test');
         sinon.spy(this.attachmentChart2, 'draw');
         this.myChart.attach('attachment1', this.attachmentChart);
@@ -107,10 +60,10 @@ describe('koto.chart', function() {
         this.myChart.draw(data);
 
         expect(
-          this.attachmentChart.draw.lastCall.args,
+          this.attachmentChart.draw.args,
           'Demuxes data passed to charts with registered function'
         )
-        .to.deep.equal([[1, 2, 3]]);
+        .to.deep.equal([[[1, 2, 3]]]);
         expect(
           this.attachmentChart2.draw.args[0][0].series1,
           data.series1,
@@ -128,7 +81,7 @@ describe('koto.chart', function() {
   });
 
   describe('#draw', function () {
-    before(function () {
+    beforeEach(function () {
       var layer1, layer2, transform, transformedData, myChart;
       this.transformedData = transformedData = {};
       this.transform = transform = sinon.stub().returns(transformedData);
@@ -200,6 +153,215 @@ describe('koto.chart', function() {
       expect(grandpaTransform.calledWith(7)).to.be.true;
     });
 
+    it('should invoke the draw method for each of its layers', function () {
+      expect(this.layer1.draw.callCount).to.equal(0);
+      expect(this.layer2.draw.callCount).to.equal(0);
+
+      this.myChart.draw([]);
+
+      expect(this.layer1.draw.callCount).to.equal(1);
+      expect(this.layer2.draw.callCount).to.equal(1);
+    });
+
+    it('should invoke the `draw` method of each of its layers with the transformed data', function () {
+      this.myChart.draw([]);
+
+      expect(this.layer1.draw.args[0][0]).to.equal(this.transformedData);
+      expect(this.layer2.draw.args[0][0]).to.equal(this.transformedData);
+    });
+
+    it('should invoke the `draw` method on each of its attachments', function () {
+      expect(this.attachment1.draw.callCount).to.equal(0);
+      expect(this.attachment2.draw.callCount).to.equal(0);
+
+      this.myChart.draw();
+
+      expect(this.attachment1.draw.callCount).to.equal(1);
+      expect(this.attachment2.draw.callCount).to.equal(1);
+    });
+
+    it('should invoke the `draw` method of each of its attachments with the transformed data', function () {
+      this.myChart.draw();
+
+      expect(this.attachment1.draw.args[0][0]).to.equal(this.transformedData);
+      expect(this.attachment2.draw.args[0][0]).to.equal(this.transformedData);
+    });
+
+    it('should invoke the `draw` method of its layers before invoking the `draw` method of its attachments', function () {
+      this.myChart.draw();
+
+      expect(this.layer1.draw.calledBefore(this.attachment1.draw)).to.be.true;
+      expect(this.layer1.draw.calledBefore(this.attachment2.draw)).to.be.true;
+      expect(this.layer2.draw.calledBefore(this.attachment1.draw)).to.be.true;
+      expect(this.layer2.draw.calledBefore(this.attachment2.draw)).to.be.true;
+    });
   });
 
+  describe('#layer', function () {
+    beforeEach(function () {
+      var base = this.base = d3.select('#test');
+      var chart = this.chart = base.chart('test');
+      var layerbase = this.layerbase = base.append('g').classed('layer1', true);
+      this.layer = chart.layer('testlayer', layerbase, {});
+    });
+
+    it('should create a layer with the same selection', function () {
+      expect(this.layer).to.equal(this.layerbase);
+    });
+
+    it('should return a layer', function () {
+      expect(this.chart.layer('testlayer')).to.equal(this.layer);
+    });
+
+    it('should extend the selection with a `draw` method', function () {
+      expect(typeof this.layer.draw).to.equal('function');
+    });
+
+    it('should extend the selection with an `on` method', function () {
+      expect(typeof this.layer.on).to.equal('function');
+    });
+
+    it('should extend the selection with a `off` method', function () {
+      expect(typeof this.layer.off).to.equal('function');
+    });
+  });
+
+  describe('events', function () {
+    beforeEach(function () {
+      this.base = d3.select('#test');
+      var chart = this.chart = this.base.chart('test');
+
+      var e1callback = this.e1callback = sinon.spy(function() {
+        return this;
+      });
+      var e1callback2 = this.e1callback2 = sinon.spy(function() {
+        return this.ctx;
+      });
+      var e2callback = this.e2callback = sinon.spy(function() {
+        return this.ctx;
+      });
+
+      var e1ctx = this.e1ctx = { ctx : 'ctx1' };
+      var e2ctx = this.e2ctx = { ctx : 'ctx2' };
+
+      chart.on('e1', e1callback);
+      chart.on('e1', e1callback2, e1ctx);
+      chart.on('e2', e2callback, e2ctx);
+    });
+
+    describe('#trigger', function () {
+      it('should execute callbacks', function () {
+        this.chart.trigger('e1');
+        expect(this.e1callback.callCount).to.equal(1);
+        expect(this.e1callback2.callCount).to.equal(1);
+        expect(this.e2callback.callCount).to.equal(0);
+
+        this.chart.trigger('e2');
+
+        expect(this.e2callback.callCount).to.equal(1);
+      });
+
+      it('should execute callbacks with correct context', function () {
+        this.chart.trigger('e1');
+        this.chart.trigger('e2');
+
+        expect(this.e1callback.returnValues[0]).to.equal(this.chart);
+        expect(this.e1callback2.returnValues[0]).to.equal(this.e1ctx.ctx);
+        expect(this.e2callback.returnValues[0]).to.equal(this.e2ctx.ctx);
+      });
+
+      it('should pass parameters correctly', function () {
+        this.chart.trigger('e1', 1, 2, 3);
+
+        this.e1callback.calledWith(1,2,3);
+      });
+
+      it('should not fail when there are no callbacks', function () {
+        var context = this;
+        expect(function () {
+          context.chart.trigger('non_existing_event', 12);
+        }).not.to.throw(Error);
+      });
+
+      it('should return the chart instance (for chaining)', function (){
+        expect(this.chart.trigger('e1')).to.equal(this.chart);
+      });
+    });
+
+    describe('#on', function () {
+      it('should return the chart instance (for chaining)', function () {
+        expect(this.chart.on('e1')).to.equal(this.chart);
+      });
+    });
+
+    describe('#off', function () {
+      it('should remove all events when invoked without arguments', function () {
+        this.chart.off();
+
+        this.chart.trigger('e1');
+        this.chart.trigger('e2');
+
+        expect(this.e1callback.callCount).to.equal(0);
+        expect(this.e1callback2.callCount).to.equal(0);
+        expect(this.e2callback.callCount).to.equal(0);
+      });
+
+      it('should remove all events with the specified name', function () {
+        this.chart.off('e1');
+        this.chart.off('e2');
+
+        this.chart.trigger('e1');
+        this.chart.trigger('e2');
+
+        expect(this.e1callback.callCount).to.equal(0);
+        expect(this.e1callback2.callCount).to.equal(0);
+        expect(this.e2callback.callCount).to.equal(0);
+      });
+
+      it('shouldremoves only event with specific callback', function() {
+        this.chart.off('e1', this.e1callback2);
+
+        this.chart.trigger('e1');
+        this.chart.trigger('e2');
+
+        expect(this.e1callback.callCount).to.equal(1);
+        expect(this.e1callback2.callCount).to.equal(0);
+        expect(this.e2callback.callCount).to.equal(1);
+      });
+
+      it('shouldremoves only event with specific context', function() {
+        this.chart.off('e1', undefined, this.e1ctx);
+
+        this.chart.trigger('e1');
+        this.chart.trigger('e2');
+
+        expect(this.e1callback.callCount).to.equal(1);
+        expect(this.e1callback2.callCount).to.equal(0);
+        expect(this.e2callback.callCount).to.equal(1);
+      });
+
+      it('shouldremoves all events with a certain context regardless of names', function() {
+        var e1callback3 = sinon.spy(function() {
+          return this.ctx;
+        });
+
+        this.chart.on('e1', e1callback3, this.e1ctx);
+
+        this.chart.trigger('e1');
+
+        expect(this.e1callback.callCount).to.equal(1);
+        expect(this.e1callback2.callCount).to.equal(1);
+        expect(e1callback3.callCount).to.equal(1);
+
+        this.chart.off(undefined, undefined, this.e1ctx);
+
+        expect(this.e1callback.callCount).to.equal(1);
+        expect(this.e1callback2.callCount).to.equal(1);
+        expect(e1callback3.callCount).to.equal(1);
+      });
+      it('shouldreturns the chart instance (chains)', function() {
+        expect(this.chart.off('e1')).to.equal(this.chart);
+      });
+    });
+  });
 });
