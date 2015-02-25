@@ -7,7 +7,8 @@
     "test": "gulp",
     "test-browser": "gulp test-browser",
     "build": "gulp build",
-    "coverage": "gulp coverage"
+    "coverage": "gulp coverage",
+    "coveralls": "cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
     "babelify": "^5.0.3",
     "browserify": "^8.1.1",
     "chai": "^2.0.0",
+    "coveralls": "^2.11.2",
     "d3": "^3.5.5",
     "del": "^1.1.1",
     "esperanto": "^0.6.15",
