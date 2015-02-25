@@ -1,7 +1,7 @@
 language: node_js
 node_js:
   - "iojs"
-script: "gulp coverage && gulp coveralls"
+script: "gulp coverage"
 after_success:
   - npm install -g codeclimate-test-reporter
   - codeclimate < coverage/lcov.info

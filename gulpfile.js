@@ -11,7 +11,6 @@ const esperanto = require('esperanto');
 const browserify = require('browserify');
 const runSequence = require('run-sequence');
 const source = require('vinyl-source-stream');
-const coveralls = require('gulp-coveralls');
 
 const manifest = require('./package.json');
 const config = manifest.babelBoilerplateOptions;
@@ -131,11 +130,6 @@ gulp.task('coverage', function(done) {
       .pipe($.istanbul.writeReports())
       .on('end', done);
     });
-});
-
-gulp.task('coveralls', function() {
-  gulp.src('coverage/lcov.info')
-    .pipe(coveralls());
 });
 
 function test() {
