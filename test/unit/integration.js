@@ -10,7 +10,7 @@ describe('integration', function() {
   });
 
   it('should Layer#chart returns a reference to the parent chart', function() {
-    var layer = this.myChart.layer('layer1', this.myChart.base.append('g'), {});
+    var layer = this.myChart.layer('layer1', this.myChart.base.append('div'), {});
 
     expect(layer.chart()).to.equal(this.myChart);
   });
@@ -27,11 +27,11 @@ describe('integration', function() {
         'exit:transition': sinon.spy()
       };
       this.dataBind = sinon.spy(function(data) {
-        return this.selectAll('g')
+        return this.selectAll('div')
           .data(data, function(d) { return d; });
       });
       this.insert = sinon.spy(function() {
-        return this.append('g');
+        return this.append('div');
       });
 
       this.layer = this.myChart.layer('layer1', this.myChart.base.append('g'), {
@@ -57,18 +57,23 @@ describe('integration', function() {
       it('should `enter`', function() {
         expect(this.events.enter.thisValues[0].chart()).to.equal(this.myChart);
       });
+
       it('should `enter:transition`', function() {
         expect(this.events['enter:transition'].thisValues[0].chart()).to.equal(this.myChart);
       });
+
       it('should `update`', function() {
         expect(this.events.update.thisValues[0].chart()).to.equal(this.myChart);
       });
+
       it('should `update:transition`', function() {
         expect(this.events['update:transition'].thisValues[0].chart()).to.equal(this.myChart);
       });
+
       it('should `exit`', function() {
         expect(this.events.exit.thisValues[0].chart()).to.equal(this.myChart);
       });
+
       it('should `exit:transition`', function() {
         expect(this.events['exit:transition'].thisValues[0].chart()).to.equal(this.myChart);
       });
