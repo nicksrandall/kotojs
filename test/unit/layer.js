@@ -15,16 +15,19 @@ describe('d3.layer', function() {
       var inst = base.layer({});
       expect(inst).to.equal(base);
     });
+
     it('should extends the selection with a `draw` method', function() {
       var base = d3.select('#test');
       var inst = base.layer({});
       expect(typeof inst.draw).to.equal('function');
     });
+
     it('should extends the selection with an `on` method', function() {
       var base = d3.select('#test');
       var inst = base.layer({});
       expect(typeof inst.on).to.equal('function');
     });
+
     it('should extends the selection with an `off` method', function() {
       var base = d3.select('#test');
       var inst = base.layer({});
@@ -71,6 +74,14 @@ describe('d3.layer', function() {
       expect(this.dataBind.callCount).to.equal(1);
     });
 
+    it('should throw error when dataBind is not set', function () {
+      expect(function () {
+        this.base.layer({
+          insert: this.insert
+        }).draw([]);
+      }).to.throw(Error);
+    });
+
     it('should invokes the provided `dataBind` method in the context of the layer\'s selection', function() {
       expect(this.dataBind.callCount).to.equal(0);
       this.layer.draw([]);
@@ -82,6 +93,14 @@ describe('d3.layer', function() {
       expect(this.dataBind.callCount).to.equal(0);
       this.layer.draw(data);
       expect(this.dataBind.args[0][0]).to.equal(data);
+    });
+
+    it('should throw error when insert is not set', function () {
+      expect(function () {
+        this.base.layer({
+          dataBind: this.dataBind
+        }).draw([]);
+      }).to.throw(Error);
     });
 
     it('should invokes the provided `insert` method exactly once', function() {
@@ -191,6 +210,7 @@ describe('d3.layer', function() {
           expect(this.onEnter2.callCount).to.equal(1);
           expect(this.onUpdate.callCount).to.equal(1);
         });
+
         it('should unbinds only the handlers for the specified lifecycle selection', function() {
           this.layer.off('enter');
           this.layer.draw([1]);
@@ -248,6 +268,7 @@ describe('d3.layer', function() {
             events: this.spies
           });
         });
+
         it('should invokes all event handlers exactly once', function() {
           this.layer.draw([1, 2]);
           Object.keys(this.spies).forEach(function(key) {
@@ -264,6 +285,7 @@ describe('d3.layer', function() {
           expect(this.spies['merge:transition'].callCount).to.equal(1);
           expect(this.spies['exit:transition'].callCount).to.equal(1);
         });
+
         it('should invokes all event handlers in the context of the corresponding \'lifecycle selection\'', function() {
           var entering, updating, exiting;
           this.layer.draw([1, 2]);
@@ -473,7 +495,6 @@ describe('d3.layer', function() {
             expect(this.handler.thisValues[0].chart()).to.equal(this.chartVal);
           });
         });
-
       });
     });
   });

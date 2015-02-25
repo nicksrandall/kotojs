@@ -15,6 +15,10 @@ describe('kotojs', function() {
       expect(chart).to.equal(koto.chart('test'));
     });
 
+    it('should return registry if called with no arguments', function () {
+      expect(koto.chart()).to.have.any.keys('test');
+    });
+
     it('should instantiate the specified chart', function() {
       var myChart = d3.select('#test').chart('test');
       expect(myChart).to.be.an.instanceof(koto.Chart);

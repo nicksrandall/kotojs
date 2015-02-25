@@ -74,20 +74,36 @@ describe('koto.Chart', function() {
         expect(
           this.attachmentChart.draw.args,
           'Demuxes data passed to charts with registered function'
-        )
-        .to.deep.equal([[[1, 2, 3]]]);
+        ).to.deep.equal([[[1, 2, 3]]]);
+
         expect(
           this.attachmentChart2.draw.args[0][0].series1,
           data.series1,
           'Unmodified data passes through to attachments directly'
-        )
-        .to.deep.equal(data.series1);
+        ).to.deep.equal(data.series1);
+
         expect(
           this.attachmentChart2.draw.args[0][0].series2,
           data.series1,
           'Unmodified data passes through to attachments directly'
-        )
-        .to.deep.equal(data.series2);
+        ).to.deep.equal(data.series2);
+      });
+
+      it('should not run demux if it is not defined and not throw an error', function () {
+        delete this.myChart.demux;
+        this.myChart.draw(data);
+
+        expect(
+          this.attachmentChart2.draw.args[0][0].series1,
+          data.series1,
+          'Unmodified data passes through to attachments directly'
+        ).to.deep.equal(data.series1);
+
+        expect(
+          this.attachmentChart2.draw.args[0][0].series2,
+          data.series1,
+          'Unmodified data passes through to attachments directly'
+        ).to.deep.equal(data.series2);
       });
     });
   });
@@ -225,6 +241,12 @@ describe('koto.Chart', function() {
       expect(this.chart.layer('testlayer')).to.equal(this.layer);
     });
 
+    it('should throw an error when passing invalid selection', function () {
+      expect(function () {
+        this.chart.layer('bad', {}, {});
+      }).to.throw(Error);
+    });
+
     it('should extend the selection with a `draw` method', function () {
       expect(typeof this.layer.draw).to.equal('function');
     });
@@ -252,6 +274,9 @@ describe('koto.Chart', function() {
       var e2callback = this.e2callback = sinon.spy(function() {
         return this.ctx;
       });
+      var onceCallback = this.onceCallback = sinon.spy(function() {
+        return this.ctx;
+      });
 
       var e1ctx = this.e1ctx = { ctx : 'ctx1' };
       var e2ctx = this.e2ctx = { ctx : 'ctx2' };
@@ -259,6 +284,7 @@ describe('koto.Chart', function() {
       chart.on('e1', e1callback);
       chart.on('e1', e1callback2, e1ctx);
       chart.on('e2', e2callback, e2ctx);
+      chart.once('once', onceCallback);
     });
 
     describe('#trigger', function () {
@@ -303,6 +329,24 @@ describe('koto.Chart', function() {
     describe('#on', function () {
       it('should return the chart instance (for chaining)', function () {
         expect(this.chart.on('e1')).to.equal(this.chart);
+      });
+
+      it('should fire everytime it is triggered.', function () {
+        this.chart.trigger('e1');
+        this.chart.trigger('e1');
+        expect(this.e1callback.calledTwice).to.be.true;
+      });
+    });
+
+    describe('#once', function () {
+      it('should return the chart instance (for chaining)', function () {
+        expect(this.chart.once('e1')).to.equal(this.chart);
+      });
+
+      it('should only be called once if triggered multiple times', function () {
+        this.chart.trigger('once');
+        this.chart.trigger('once');
+        expect(this.onceCallback.calledOnce).to.be.true;
       });
     });
 
@@ -382,6 +426,11 @@ describe('koto.Chart', function() {
       this.myChart = d3.select('#test').chart('test');
     });
 
+    it('should return list of configs if passed with no args', function () {
+      this.myChart.config('color', 'blue');
+      expect(this.myChart.config()).to.deep.equal({ width: 500, color: 'blue' });
+    });
+
     it('should get the specified default config value', function () {
       expect(this.myChart.config('width')).to.equal(500);
     });
@@ -419,6 +468,10 @@ describe('koto.Chart', function() {
 describe('#accessor', function () {
     beforeEach(function () {
       this.myChart = d3.select('#test').chart('test');
+    });
+
+    it('should return list of accessors if passed with no args', function () {
+      expect(this.myChart.accessor()).to.have.all.keys({ value: function () {}, item: function () {} });
     });
 
     it('should get the specified default config value', function () {

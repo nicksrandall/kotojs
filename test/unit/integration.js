@@ -34,7 +34,7 @@ describe('integration', function() {
         return this.append('div');
       });
 
-      this.layer = this.myChart.layer('layer1', this.myChart.base.append('g'), {
+      this.layer = this.myChart.layer('layer1', this.myChart.base.append('div'), {
         dataBind: this.dataBind,
         insert: this.insert,
         events: this.events

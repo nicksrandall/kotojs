@@ -495,11 +495,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 							return this._accessors[item];
 						} else {
 							for (key in item) {
-								if (this._accessors[key]) {
-									this._accessors[key] = item[key];
-								} else {
-									console.warn("" + key + " is not a valid accessor.");
-								}
+								this._accessors[key] = item[key];
 							}
 						}
 					} else {

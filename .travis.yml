@@ -1,7 +1,8 @@
 language: node_js
 node_js:
-  - "0.10"
+  - "0.12"
 script: "gulp coverage"
 after_success:
-  - npm install -g codeclimate-test-reporter
+  - npm install -g codeclimate-test-reporter coveralls
   - codeclimate < coverage/lcov.info
+  - coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
