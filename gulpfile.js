@@ -1,4 +1,5 @@
 var gulp = require('gulp');
+require('gulp-release-tasks')(gulp);
 var $ = require('gulp-load-plugins')();
 const fs = require('fs');
 const del = require('del');
@@ -11,6 +12,8 @@ const esperanto = require('esperanto');
 const browserify = require('browserify');
 const runSequence = require('run-sequence');
 const source = require('vinyl-source-stream');
+const changelog = require('conventional-changelog');
+const argv = require('yargs').argv;
 
 const manifest = require('./package.json');
 const config = manifest.babelBoilerplateOptions;
@@ -162,6 +165,30 @@ gulp.task('test-browser', ['build-in-sequence'], function() {
   $.livereload.listen({port: 35729, host: 'localhost', start: true});
   return gulp.watch(['src/**/*.js', 'test/**/*', '.jshintrc', 'test/.jshintrc'], ['build-in-sequence']);
 });
+
+function versioning() {
+  if (argv.minor || argv.feature) {
+    return 'minor';
+  }
+  if (argv.major) {
+    return 'major';
+  }
+  return 'patch';
+};
+
+gulp.task('changelog', function (done) {
+  changelog({
+    repository: 'https://github.com/nicksrandall/kotojs',
+    version: require('semver').inc(JSON.parse(fs.readFileSync(bumpPreference, 'utf8')).version, versioning())
+  }, function(err, log) {
+    if (err) {
+      reject(err);
+    }
+    file('CHANGELOG.md', log, { src: true })
+      .pipe(gulp.dest('./'))
+      .on('end', done);
+  });
+})
 
 // An alias of test
 gulp.task('default', ['test']);
