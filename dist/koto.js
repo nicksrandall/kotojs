@@ -514,24 +514,6 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 	var lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
 
 	/**
-  * Loop through handers and call them on selection
-  * @param {d3.selection} selection The node to run the handler on.
-  *                                  it could be an `d3.transition` selection
-  * @param {lifecycle event} handlers A function to call for that layers named
-  *                           				 lifecycle event.
-  */
-	function selectionHandler(selection, handlers) {
-		var idx, len;
-		for (idx = 0, len = handlers.length; idx < len; ++idx) {
-			// Attach a reference to the parent chart so the selection's
-			// `chart` method will function correctly.
-			selection._chart = handlers[idx].chart || this._base._chart;
-			selection.call(handlers[idx].callback);
-		}
-		return selection;
-	}
-
-	/**
   * Create a layer using the provided `base`. The layer instance is *not*
   * exposed to d3.chart users. Instead, its instance methods are mixed in to the
   * `base` selection it describes; users interact with the instance via these
@@ -670,7 +652,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      */
 
 				value: function draw(data) {
-					var bound, entering, events, selection, method, handlers, transitionHandlers, eventName;
+					var bound, entering, events, selection, method, handlers, eventName, idx, len, tidx, tlen;
 
 					bound = this.dataBind.call(this._base, data);
 
@@ -728,14 +710,22 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 						handlers = this._handlers[eventName];
 
 						if (handlers) {
-							selection = selectionHandler.call(this, selection, handlers);
+							for (idx = 0, len = handlers.length; idx < len; ++idx) {
+								// Attach a reference to the parent chart so the selection"s
+								// `chart` method will function correctly.
+								selection._chart = handlers[idx].chart || this._base._chart;
+								selection.call(handlers[idx].callback);
+							}
 						}
 
-						transitionHandlers = this._handlers[eventName + ":transition"];
+						handlers = this._handlers[eventName + ":transition"];
 
-						if (transitionHandlers && transitionHandlers.length) {
+						if (handlers && handlers.length) {
 							selection = selection.transition();
-							selection = selectionHandler.call(this, selection, transitionHandlers);
+							for (tlen = handlers.length, tidx = 0; tidx < tlen; ++tidx) {
+								selection._chart = handlers[tidx].chart || this._base._chart;
+								selection.call(handlers[tidx].callback);
+							}
 						}
 					}
 				},

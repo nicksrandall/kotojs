@@ -1,7 +1,5 @@
 import koto from '../../src/koto';
 
-require('../charts/single.js');
-
 describe('koto.Chart', function() {
   'use strict';
 
