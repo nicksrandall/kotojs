@@ -179,16 +179,18 @@ function versioning() {
 gulp.task('changelog', function (done) {
   changelog({
     repository: 'https://github.com/nicksrandall/kotojs',
-    version: require('semver').inc(JSON.parse(fs.readFileSync(bumpPreference, 'utf8')).version, versioning())
+    version: require('semver').inc(JSON.parse(fs.readFileSync('package.json', 'utf8')).version, versioning())
   }, function(err, log) {
     if (err) {
       reject(err);
     }
-    file('CHANGELOG.md', log, { src: true })
+    $.file('CHANGELOG.md', log, { src: true })
       .pipe(gulp.dest('./'))
       .on('end', done);
   });
-})
+});
+
+gulp.task('release', ['changelog', 'tag']);
 
 // An alias of test
 gulp.task('default', ['test']);
