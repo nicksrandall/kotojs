@@ -3,8 +3,8 @@ var _prototypeProperties = function (child, staticProps, instanceProps) { if (st
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
 (function (global, factory) {
-	typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : global.koto = factory();
-})(this, function () {
+	typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require("d3")) : typeof define === "function" && define.amd ? define(["d3"], factory) : global.koto = factory(global.d3);
+})(this, function (d3) {
 	"use strict";
 
 	/**
@@ -877,6 +877,10 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 		return this;
 	};
 
-	return koto;
+	kotoAssert(d3, "d3.js is required");
+
+	var _koto = koto;
+
+	return _koto;
 });
 //# sourceMappingURL=./koto.js.map

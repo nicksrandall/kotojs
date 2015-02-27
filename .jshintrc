@@ -65,6 +65,7 @@
   "yui"           : false,
   "globals": {
     "global": true,
+    "require": true,
     "koto": true,
     "Layer": true,
     "Chart": true,
