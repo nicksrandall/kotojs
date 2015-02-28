@@ -1,3 +1,5 @@
+var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
+
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
@@ -27,11 +29,11 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 			this.hasDrawn = false; // Has this chart been drawn at lease once?
 
 			// private
-			this._layers = {};
-			this._attached = {};
-			this._events = {};
-			this._configs = {};
-			this._accessors = {};
+			this._layers = new Map();
+			this._attached = new Map();
+			this._events = new Map();
+			this._configs = new Map();
+			this._accessors = new Map();
 		}
 
 		_prototypeProperties(Chart, null, {
@@ -129,7 +131,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 				value: function unlayer(name) {
 					var layer = this.layer(name);
 
-					delete this._layers[name];
+					this._layers["delete"](name);
 					delete layer._chart;
 
 					return layer;
@@ -169,7 +171,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 					var _layer;
 
 					if (arguments.length === 1) {
-						return this._layers[name];
+						return this._layers.get(name);
 					}
 
 					// we are reattaching a previous layer, which the
@@ -178,8 +180,8 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
 						if (typeof selection.draw === "function") {
 							selection._chart = this;
-							this._layers[name] = selection;
-							return this._layers[name];
+							this._layers.set(name, selection);
+							return this._layers.get(name);
 						} else {
 							kotoAssert(false, "When reattaching a layer, the second argument " + "must be a d3.chart layer");
 						}
@@ -187,7 +189,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
 					_layer = selection.layer(options);
 
-					this._layers[name] = _layer;
+					this._layers.set(name, _layer);
 
 					selection._chart = this;
 
@@ -213,10 +215,10 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
 				value: function attach(attachmentName, chart) {
 					if (arguments.length === 1) {
-						return this._attached[attachmentName];
+						return this._attached.get(attachmentName);
 					}
 
-					this._attached[attachmentName] = chart;
+					this._attached.set(attachmentName, chart);
 					return chart;
 				},
 				writable: true,
@@ -239,23 +241,64 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
 				value: function draw(rawData) {
 
-					var layerName, attachmentName, attachmentData;
+					var layer, attachmentData;
 
 					var data = this.transform(rawData);
 
 					this.preDraw(data);
 
-					for (layerName in this._layers) {
-						this._layers[layerName].draw(data);
+					var _iteratorNormalCompletion = true;
+					var _didIteratorError = false;
+					var _iteratorError = undefined;
+
+					try {
+						for (var _iterator = this._layers.values()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+							layer = _step.value;
+
+							layer.draw(data);
+						}
+					} catch (err) {
+						_didIteratorError = true;
+						_iteratorError = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion && _iterator["return"]) {
+								_iterator["return"]();
+							}
+						} finally {
+							if (_didIteratorError) {
+								throw _iteratorError;
+							}
+						}
 					}
 
-					for (attachmentName in this._attached) {
-						if (this.demux) {
-							attachmentData = this.demux(attachmentName, data);
-						} else {
-							attachmentData = data;
+					var _iteratorNormalCompletion2 = true;
+					var _didIteratorError2 = false;
+					var _iteratorError2 = undefined;
+
+					try {
+						for (var _iterator2 = this._attached.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+							var _step2$value = _slicedToArray(_step2.value, 2);
+
+							var attachmentName = _step2$value[0];
+							var attachment = _step2$value[1];
+
+							attachmentData = this.demux ? this.demux(attachmentName, data) : data;
+							attachment.draw(attachmentData);
 						}
-						this._attached[attachmentName].draw(attachmentData);
+					} catch (err) {
+						_didIteratorError2 = true;
+						_iteratorError2 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion2 && _iterator2["return"]) {
+								_iterator2["return"]();
+							}
+						} finally {
+							if (_didIteratorError2) {
+								throw _iteratorError2;
+							}
+						}
 					}
 
 					this.hasDrawn = true;
@@ -292,12 +335,20 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      */
 
 				value: function on(name, callback, context) {
-					var events = this._events[name] || (this._events[name] = []);
-					events.push({
+					var events;
+					if (this._events.has(name)) {
+						events = this._events.get(name);
+					} else {
+						events = new Set();
+					}
+
+					events.add({
 						callback: callback,
 						context: context || this,
 						_chart: this
 					});
+
+					this._events.set(name, events);
 					return this;
 				},
 				writable: true,
@@ -364,39 +415,29 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      */
 
 				value: function off(name, callback, context) {
-					var names, n, events, event, i, j;
 
 					// remove all events
 					if (arguments.length === 0) {
-						for (name in this._events) {
-							this._events[name].length = 0;
-						}
+						this._events.clear();
 						return this;
 					}
 
 					// remove all events for a specific name
 					if (arguments.length === 1) {
-						events = this._events[name];
-						if (events) {
-							events.length = 0;
+						if (this._events.has(name)) {
+							this._events.get(name).clear();
 						}
 						return this;
 					}
 
 					// remove all events that match whatever combination of name, context
 					// and callback.
-					names = name ? [name] : Object.keys(this._events);
-					for (i = 0; i < names.length; i++) {
-						n = names[i];
-						events = this._events[n];
-						j = events.length;
-						while (j--) {
-							event = events[j];
-							if (callback && callback === event.callback || context && context === event.context) {
-								events.splice(j, 1);
-							}
+
+					this._events.get(name).forEach(function (event, clone, map) {
+						if (callback && callback === clone.callback || context && context === clone.context) {
+							map["delete"](event);
 						}
-					}
+					});
 
 					return this;
 				},
@@ -418,17 +459,17 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
      */
 
 				value: function trigger(name) {
-					var args = Array.prototype.slice.call(arguments, 1);
-					var events = this._events[name];
-					var i, ev;
-
-					if (events !== undefined) {
-						for (i = 0; i < events.length; i++) {
-							ev = events[i];
-							ev.callback.apply(ev.context, args);
-						}
+					for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+						args[_key - 1] = arguments[_key];
 					}
 
+					if (this._events.has(name)) {
+						this._events.get(name).forEach(function (event) {
+							var _event$callback;
+
+							(_event$callback = event.callback).call.apply(_event$callback, [event.context].concat(args));
+						});
+					}
 					return this;
 				},
 				writable: true,
@@ -453,16 +494,16 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 					if (arguments.length === 1) {
 						if (typeof nameOrObject === "object") {
 							for (key in nameOrObject) {
-								this._configs[key] = nameOrObject[key];
+								this._configs.set(key, nameOrObject[key]);
 							}
 							return this;
 						}
-						kotoAssert(this._configs[nameOrObject], "" + nameOrObject + " is not a valid option.");
-						return this._configs[nameOrObject];
+						kotoAssert(this._configs.has(nameOrObject), "" + nameOrObject + " is not a valid option.");
+						return this._configs.get(nameOrObject);
 					}
 
 					if (arguments.length === 2) {
-						this._configs[nameOrObject] = value;
+						this._configs.set(nameOrObject, value);
 						return this;
 					}
 				},
@@ -488,18 +529,15 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
 					if (arguments.length === 1) {
 						if (typeof item === "string") {
-							kotoAssert(this._accessors[item], "" + item + " is not a valid accessor.");
-							if (typeof this._accessors[item] === "object") {
-								return this._accessors[item].accessor;
-							}
-							return this._accessors[item];
+							kotoAssert(this._accessors.has(item), "" + item + " is not a valid accessor.");
+							return this._accessors.get(item);
 						} else {
 							for (key in item) {
-								this._accessors[key] = item[key];
+								this._accessors.set(key, item[key]);
 							}
 						}
 					} else {
-						this._accessors[item] = value;
+						this._accessors.set(item, value);
 					}
 					return this;
 				},
@@ -736,17 +774,6 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 
 		return Layer;
 	})();
-
-	kotoAssert(d3, "d3.js is required");
-
-	/**
-  * Registry {@link Chart} defintions to be used later.
-  * @class
-  *
-  * @param {Class} Options The Options class.
-  * @param {Class} Layer The Layer class.
-  * @param {Class} Chart The Chart class.
-  */
 
 	var Koto = (function () {
 		function Koto(Layer, Chart) {

@@ -394,25 +394,6 @@ describe('koto.Chart', function() {
         expect(this.e2callback.callCount).to.equal(1);
       });
 
-      it('shouldremoves all events with a certain context regardless of names', function() {
-        var e1callback3 = sinon.spy(function() {
-          return this.ctx;
-        });
-
-        this.chart.on('e1', e1callback3, this.e1ctx);
-
-        this.chart.trigger('e1');
-
-        expect(this.e1callback.callCount).to.equal(1);
-        expect(this.e1callback2.callCount).to.equal(1);
-        expect(e1callback3.callCount).to.equal(1);
-
-        this.chart.off(undefined, undefined, this.e1ctx);
-
-        expect(this.e1callback.callCount).to.equal(1);
-        expect(this.e1callback2.callCount).to.equal(1);
-        expect(e1callback3.callCount).to.equal(1);
-      });
       it('shouldreturns the chart instance (chains)', function() {
         expect(this.chart.off('e1')).to.equal(this.chart);
       });
@@ -426,7 +407,7 @@ describe('koto.Chart', function() {
 
     it('should return list of configs if passed with no args', function () {
       this.myChart.config('color', 'blue');
-      expect(this.myChart.config()).to.deep.equal({ width: 500, color: 'blue' });
+      expect(this.myChart.config().size).to.equal(2);
     });
 
     it('should get the specified default config value', function () {
@@ -469,7 +450,8 @@ describe('#accessor', function () {
     });
 
     it('should return list of accessors if passed with no args', function () {
-      expect(this.myChart.accessor()).to.have.all.keys({ value: function () {}, item: function () {} });
+      this.myChart.accessor('value', function (d) { return d.value; });
+      expect(this.myChart.accessor().size).to.equal(2);
     });
 
     it('should get the specified default config value', function () {

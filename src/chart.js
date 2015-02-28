@@ -14,11 +14,11 @@ class Chart {
       this.hasDrawn = false; // Has this chart been drawn at lease once?
 
       // private
-      this._layers = {};
-      this._attached = {};
-      this._events = {};
-      this._configs = {};
-      this._accessors = {};
+      this._layers = new Map();
+      this._attached = new Map();
+      this._events = new Map();
+      this._configs = new Map();
+      this._accessors = new Map();
   }
 
   /**
@@ -88,7 +88,7 @@ class Chart {
   unlayer(name) {
     var layer = this.layer(name);
 
-    delete this._layers[name];
+    this._layers.delete(name);
     delete layer._chart;
 
     return layer;
@@ -123,7 +123,7 @@ class Chart {
     var _layer;
 
     if (arguments.length === 1) {
-      return this._layers[name];
+      return this._layers.get(name);
     }
 
     // we are reattaching a previous layer, which the
@@ -132,8 +132,8 @@ class Chart {
 
       if (typeof selection.draw === 'function') {
         selection._chart = this;
-        this._layers[name] = selection;
-        return this._layers[name];
+        this._layers.set(name, selection);
+        return this._layers.get(name);
 
       } else {
         kotoAssert(false, 'When reattaching a layer, the second argument '+
@@ -143,7 +143,7 @@ class Chart {
 
     _layer = selection.layer(options);
 
-    this._layers[name] = _layer;
+    this._layers.set(name, _layer);
 
     selection._chart = this;
 
@@ -164,10 +164,10 @@ class Chart {
    */
   attach(attachmentName, chart) {
     if (arguments.length === 1) {
-      return this._attached[attachmentName];
+      return this._attached.get(attachmentName);
     }
 
-    this._attached[attachmentName] = chart;
+    this._attached.set(attachmentName, chart);
     return chart;
   }
 
@@ -185,23 +185,19 @@ class Chart {
    */
   draw(rawData) {
 
-    var layerName, attachmentName, attachmentData;
+    var layer, attachmentData;
 
     var data = this.transform(rawData);
 
     this.preDraw(data);
 
-    for (layerName in this._layers) {
-      this._layers[layerName].draw(data);
+    for (layer of this._layers.values()) {
+      layer.draw(data);
     }
 
-    for (attachmentName in this._attached) {
-      if (this.demux) {
-        attachmentData = this.demux(attachmentName, data);
-      } else {
-        attachmentData = data;
-      }
-      this._attached[attachmentName].draw(attachmentData);
+    for (var [attachmentName, attachment] of this._attached.entries()) {
+      attachmentData = this.demux ? this.demux(attachmentName, data) : data;
+      attachment.draw(attachmentData);
     }
 
     this.hasDrawn = true;
@@ -233,12 +229,20 @@ class Chart {
    * @returns {Chart} A reference to this chart (chainable).
    */
   on(name, callback, context) {
-    var events = this._events[name] || (this._events[name] = []);
-    events.push({
+    var events;
+    if (this._events.has(name)) {
+      events = this._events.get(name);
+    } else {
+      events = new Set();
+    }
+
+    events.add({
       callback: callback,
       context: context || this,
       _chart: this
     });
+
+    this._events.set(name, events);
     return this;
   }
 
@@ -285,40 +289,30 @@ class Chart {
    * @returns {Chart} A reference to this chart (chainable).
    */
   off(name, callback, context) {
-    var names, n, events, event, i, j;
 
     // remove all events
     if (arguments.length === 0) {
-      for (name in this._events) {
-        this._events[name].length = 0;
-      }
+      this._events.clear();
       return this;
     }
 
     // remove all events for a specific name
     if (arguments.length === 1) {
-      events = this._events[name];
-      if (events) {
-        events.length = 0;
+      if (this._events.has(name)) {
+        this._events.get(name).clear();
       }
       return this;
     }
 
     // remove all events that match whatever combination of name, context
     // and callback.
-    names = name ? [name] : Object.keys(this._events);
-    for (i = 0; i < names.length; i++) {
-      n = names[i];
-      events = this._events[n];
-      j = events.length;
-      while (j--) {
-        event = events[j];
-        if ((callback && callback === event.callback) ||
-            (context && context === event.context)) {
-          events.splice(j, 1);
-        }
+
+    this._events.get(name).forEach((event, clone, map) => {
+      if ((callback && callback === clone.callback) ||
+          (context && context === clone.context)) {
+        map.delete(event);
       }
-    }
+    });
 
     return this;
   }
@@ -334,18 +328,12 @@ class Chart {
    *
    * @returns {Chart} A reference to this chart (chainable).
    */
-  trigger(name) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    var events = this._events[name];
-    var i, ev;
-
-    if (events !== undefined) {
-      for (i = 0; i < events.length; i++) {
-        ev = events[i];
-        ev.callback.apply(ev.context, args);
-      }
+  trigger(name, ...args) {
+    if (this._events.has(name)) {
+      this._events.get(name).forEach((event) => {
+        event.callback.call(event.context, ...args);
+      });
     }
-
     return this;
   }
   /**
@@ -365,16 +353,16 @@ class Chart {
     if (arguments.length === 1) {
       if (typeof nameOrObject === 'object') {
         for (key in nameOrObject) {
-          this._configs[key] = nameOrObject[key];
+          this._configs.set(key, nameOrObject[key]);
         }
         return this;
       }
-      kotoAssert(this._configs[nameOrObject], `${nameOrObject} is not a valid option.`);
-      return this._configs[nameOrObject];
+      kotoAssert(this._configs.has(nameOrObject), `${nameOrObject} is not a valid option.`);
+      return this._configs.get(nameOrObject);
     }
 
     if(arguments.length === 2) {
-      this._configs[nameOrObject] = value;
+      this._configs.set(nameOrObject, value);
       return this;
     }
   }
@@ -395,18 +383,15 @@ class Chart {
 
     if (arguments.length === 1) {
       if (typeof item === 'string') {
-        kotoAssert(this._accessors[item], `${item} is not a valid accessor.`);
-        if (typeof this._accessors[item] === 'object') {
-          return this._accessors[item].accessor;
-        }
-        return this._accessors[item];
+        kotoAssert(this._accessors.has(item), `${item} is not a valid accessor.`);
+        return this._accessors.get(item);
       } else {
         for (key in item) {
-          this._accessors[key] = item[key];
+          this._accessors.set(key, item[key]);
         }
       }
     } else {
-      this._accessors[item] = value;
+      this._accessors.set(item, value);
     }
     return this;
   }

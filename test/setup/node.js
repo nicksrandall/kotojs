@@ -10,6 +10,7 @@ global.document.createRange = function() {
     createContextualFragment: jsdom.jsdom
   };
 };
+
 global.window = global.document.defaultView;
 
 global.d3 = require('d3');

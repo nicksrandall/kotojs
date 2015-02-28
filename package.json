@@ -39,7 +39,6 @@
     "chai": "^2.0.0",
     "conventional-changelog": "0.0.11",
     "coveralls": "^2.11.2",
-    "d3": "^3.5.5",
     "del": "^1.1.1",
     "esperanto": "^0.6.15",
     "glob": "^4.3.5",
@@ -82,5 +81,8 @@
       "koto",
       "d3"
     ]
+  },
+  "dependencies": {
+    "d3": "^3.5.5"
   }
 }

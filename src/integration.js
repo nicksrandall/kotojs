@@ -2,13 +2,6 @@ import kotoAssert from './assert.js';
 import Chart from './chart.js';
 import Layer from './layer.js';
 
-
-/**
- * d3.js is a required dependancy.
- * @todo I should probably check a version number here.
- */
-kotoAssert(d3, 'd3.js is required');
-
 /**
  * Registry {@link Chart} defintions to be used later.
  * @class
