@@ -195,7 +195,7 @@ class Chart {
       layer.draw(data);
     }
 
-    for (var [attachmentName, attachment] of this._attached.entries()) {
+    for (let [attachmentName, attachment] of this._attached.entries()) {
       attachmentData = this.demux ? this.demux(attachmentName, data) : data;
       attachment.draw(attachmentData);
     }

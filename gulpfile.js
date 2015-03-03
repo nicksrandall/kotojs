@@ -129,7 +129,7 @@ gulp.task('coverage', function(done) {
   gulp.src(['src/*.js'])
     .pipe($.plumber())
     .pipe($.istanbul({ instrumenter: isparta.Instrumenter }))
-    // .pipe($.istanbul.hookRequire())
+    .pipe($.istanbul.hookRequire())
     .on('finish', function() {
       return test()
       .pipe($.istanbul.writeReports())
