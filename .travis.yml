@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "iojs"
+  - "io.js"
 script: "gulp coverage"
 after_success:
   - npm run coveralls

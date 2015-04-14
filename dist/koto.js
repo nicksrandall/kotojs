@@ -24,12 +24,25 @@ var _createClass = (function () { function defineProperties(target, props) { for
 	var assert = kotoAssert;
 
 	var Layer = (function () {
-		function Layer(base) {
+		function Layer(base, options) {
 			_classCallCheck(this, Layer);
 
 			this._base = base;
 			this._handlers = {};
 			this._lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
+
+			if (options) {
+				// Set layer methods (required)
+				this.dataBind = options.dataBind;
+				this.insert = options.insert;
+
+				// Bind events (optional)
+				if ('events' in options) {
+					for (var eventName in options.events) {
+						this.on(eventName, options.events[eventName]);
+					}
+				}
+			}
 		}
 
 		_createClass(Layer, [{
@@ -81,7 +94,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 					callback: handler,
 					chart: options.chart || null
 				});
-				return this._base;
+				return this;
 			}
 		}, {
 			key: 'off',
@@ -117,7 +130,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 						handlers.splice(idx, 1);
 					}
 				}
-				return this._base;
+				return this;
 			}
 		}, {
 			key: 'draw',
@@ -372,18 +385,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 					}
 				}
 
-				_layer = new __layer(selection);
-
-				// Set layer methods (required)
-				_layer.dataBind = options.dataBind;
-				_layer.insert = options.insert;
-
-				// Bind events (optional)
-				if ('events' in options) {
-					for (var eventName in options.events) {
-						_layer.on(eventName, options.events[eventName]);
-					}
-				}
+				_layer = new __layer(selection, options);
 
 				this._layers.set(name, _layer);
 

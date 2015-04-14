@@ -142,18 +142,7 @@ class Chart {
       }
     }
 
-    _layer = new Layer(selection);
-
-    // Set layer methods (required)
-    _layer.dataBind = options.dataBind;
-    _layer.insert = options.insert;
-
-    // Bind events (optional)
-    if ('events' in options) {
-      for (let eventName in options.events) {
-        _layer.on(eventName, options.events[eventName]);
-      }
-    }
+    _layer = new Layer(selection, options);
 
     this._layers.set(name, _layer);
 

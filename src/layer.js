@@ -13,10 +13,23 @@ import kotoAssert from './assert.js';
  * @param {d3.selection} base The containing DOM node for the layer.
  */
 class Layer {
-  constructor(base) {
+  constructor(base, options) {
     this._base = base;
     this._handlers = {};
     this._lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
+
+    if (options) {
+      // Set layer methods (required)
+      this.dataBind = options.dataBind;
+      this.insert = options.insert;
+
+      // Bind events (optional)
+      if ('events' in options) {
+        for (let eventName in options.events) {
+          this.on(eventName, options.events[eventName]);
+        }
+      }
+    }
 	}
 
 	/**
@@ -62,7 +75,7 @@ class Layer {
 			callback: handler,
 			chart: options.chart || null
 		});
-		return this._base;
+		return this;
 	}
 
 	/**
@@ -97,7 +110,7 @@ class Layer {
 				handlers.splice(idx, 1);
 			}
 		}
-		return this._base;
+		return this;
 	}
 
 	/**
