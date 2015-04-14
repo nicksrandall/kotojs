@@ -1,6 +1,5 @@
 import kotoAssert from './assert.js';
 
-var lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
 
 /**
  * Create a layer using the provided `base`. The layer instance is *not*
@@ -14,9 +13,10 @@ var lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
  * @param {d3.selection} base The containing DOM node for the layer.
  */
 class Layer {
-	constructor(base) {
-		this._base = base;
-		this._handlers = {};
+  constructor(base) {
+    this._base = base;
+    this._handlers = {};
+    this._lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Layer {
 	on(eventName, handler, options) {
 		options = options || {};
 
-		kotoAssert(lifecycleRe.test(eventName),
+		kotoAssert(this._lifecycleRe.test(eventName),
 			`Unrecognized lifecycle event name specified to 'Layer#on': '${eventName}'.`);
 
 		if (!(eventName in this._handlers)) {
@@ -80,7 +80,7 @@ class Layer {
 		var handlers = this._handlers[eventName];
 		var idx;
 
-		kotoAssert(lifecycleRe.test(eventName),
+		kotoAssert(this._lifecycleRe.test(eventName),
 			`Unrecognized lifecycle event name specified to 'Layer#on': '${eventName}'.`);
 
 		if (!handlers) {

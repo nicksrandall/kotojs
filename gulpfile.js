@@ -1,5 +1,4 @@
 var gulp = require('gulp');
-require('gulp-release-tasks')(gulp);
 var $ = require('gulp-load-plugins')();
 const fs = require('fs');
 const del = require('del');
@@ -12,16 +11,12 @@ const esperanto = require('esperanto');
 const browserify = require('browserify');
 const runSequence = require('run-sequence');
 const source = require('vinyl-source-stream');
-const changelog = require('conventional-changelog');
-const argv = require('yargs').argv;
 
 const manifest = require('./package.json');
 const config = manifest.babelBoilerplateOptions;
 const mainFile = manifest.main;
 const destinationFolder = path.dirname(mainFile);
 const exportFileName = path.basename(mainFile, path.extname(mainFile));
-
-require('gulp-changelog-release')(gulp);
 
 // Remove the built files
 gulp.task('clean', function(cb) {
@@ -45,29 +40,24 @@ function jscsNotify(file) {
   return file.jscs.success ? false : 'JSRC failed';
 }
 
+function createLintTask(taskName, files) {
+  gulp.task(taskName, function() {
+    return gulp.src(files)
+      .pipe($.plumber())
+      .pipe($.jshint())
+      .pipe($.jshint.reporter('jshint-stylish'))
+      .pipe($.notify(jshintNotify))
+      .pipe($.jscs())
+      .pipe($.notify(jscsNotify))
+      .pipe($.jshint.reporter('fail'));
+  });
+}
+
 // Lint our source code
-gulp.task('lint-src', function() {
-  return gulp.src(['src/**/*.js'])
-    .pipe($.plumber())
-    .pipe($.jshint())
-    .pipe($.jshint.reporter('jshint-stylish'))
-    .pipe($.notify(jshintNotify))
-    .pipe($.jscs())
-    .pipe($.notify(jscsNotify))
-    .pipe($.jshint.reporter('fail'));
-});
+createLintTask('lint-src', ['src/**/*.js']);
 
 // Lint our test code
-gulp.task('lint-test', function() {
-  return gulp.src(['test/**/*.js'])
-    .pipe($.plumber())
-    .pipe($.jshint())
-    .pipe($.jshint.reporter('jshint-stylish'))
-    .pipe($.notify(jshintNotify))
-    .pipe($.jscs())
-    .pipe($.notify(jscsNotify))
-    .pipe($.jshint.reporter('fail'));
-});
+createLintTask('lint-test', ['test/**/*.js']);
 
 // Build two versions of the library
 gulp.task('build', ['lint-src', 'clean'], function(done) {
@@ -100,7 +90,8 @@ gulp.task('build', ['lint-src', 'clean'], function(done) {
       }))
       .pipe(gulp.dest(destinationFolder))
       .on('end', done);
-  });
+  })
+  .catch(done);
 });
 
 // Bundle our app for our unit tests
@@ -124,10 +115,9 @@ gulp.task('browserify', function() {
     .pipe($.livereload());
 });
 
-gulp.task('coverage', function(done) {
+gulp.task('coverage', ['lint-src', 'lint-test'], function(done) {
   require('babel/register')({ modules: 'common' });
   gulp.src(['src/*.js'])
-    .pipe($.plumber())
     .pipe($.istanbul({ instrumenter: isparta.Instrumenter }))
     .pipe($.istanbul.hookRequire())
     .on('finish', function() {
@@ -139,7 +129,6 @@ gulp.task('coverage', function(done) {
 
 function test() {
   return gulp.src(['test/setup/node.js', 'test/unit/**/*.js'], {read: false})
-    .pipe($.plumber())
     .pipe($.mocha({reporter: 'dot', globals: config.mochaGlobals}));
 };
 
@@ -155,42 +144,18 @@ gulp.task('build-in-sequence', function(callback) {
   runSequence(['lint-src', 'lint-test'], 'browserify', callback);
 });
 
+const watchFiles = ['src/**/*', 'test/**/*', 'package.json', '**/.jshintrc', '.jscsrc'];
+
 // Run the headless unit tests as you make changes.
 gulp.task('watch', function() {
-  gulp.watch(['src/**/*', 'test/**/*', '.jshintrc', 'test/.jshintrc'], ['test']);
+  gulp.watch(watchFiles, ['test']);
 });
 
 // Set up a livereload environment for our spec runner
 gulp.task('test-browser', ['build-in-sequence'], function() {
   $.livereload.listen({port: 35729, host: 'localhost', start: true});
-  return gulp.watch(['src/**/*.js', 'test/**/*', '.jshintrc', 'test/.jshintrc'], ['build-in-sequence']);
+  return gulp.watch(watchFiles, ['build-in-sequence']);
 });
-
-function versioning() {
-  if (argv.minor || argv.feature) {
-    return 'minor';
-  }
-  if (argv.major) {
-    return 'major';
-  }
-  return 'patch';
-};
-
-gulp.task('changelog', function (done) {
-  changelog({
-    repository: 'https://github.com/nicksrandall/kotojs',
-    version: require('semver').inc(JSON.parse(fs.readFileSync('package.json', 'utf8')).version, versioning())
-  }, function(err, log) {
-    if (err) {
-      reject(err);
-    }
-    $.file('CHANGELOG.md', log, { src: true })
-      .pipe(gulp.dest('./'))
-      .on('end', done);
-  });
-});
-
-gulp.task('release', ['changelog', 'tag']);
 
 // An alias of test
 gulp.task('default', ['test']);

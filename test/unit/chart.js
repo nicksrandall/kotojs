@@ -1,30 +1,30 @@
-import koto from '../../src/koto';
+import Chart from '../../src/chart';
 
 describe('koto.Chart', function() {
   'use strict';
 
   before(function () {
-    koto.chart('test', function (Chart) {
-      return class Test extends Chart {
-        constructor(selection){
-          super(selection);
+    this.Test = class extends Chart {
+      constructor(selection){
+        super(selection);
 
-          this.config('width', 500);
-          this.accessor('value', function (d) {
-            return d.value;
-          });
-          this.accessor('item', function (d) {
-            return d.item;
-          });
-        }
-      };
-    });
+        this.config('width', 500);
+        this.accessor('value', function (d) {
+          return d.value;
+        });
+        this.accessor('item', function (d) {
+          return d.item;
+        });
+      }
+    };
+    this.test = new this.Test(d3.select('#test'));
+    this.test2 = new this.Test(d3.select('#test2'));
   });
 
   describe('Attachments', function () {
     beforeEach(function () {
-      this.myChart = d3.select('#test').chart('test');
-      this.attachmentChart = d3.select('body').chart('test');
+      this.myChart = new this.Test(d3.select('#test'));
+      this.attachmentChart = new this.Test(d3.select('#test2'));
       sinon.spy(this.attachmentChart, 'draw');
     });
 
@@ -54,7 +54,7 @@ describe('koto.Chart', function() {
       };
 
       beforeEach(function () {
-        this.attachmentChart2 = d3.select('body').chart('test');
+        this.attachmentChart2 = new this.Test(d3.select('#test2'));
         sinon.spy(this.attachmentChart2, 'draw');
         this.myChart.attach('attachment1', this.attachmentChart);
         this.myChart.attach('attachment2', this.attachmentChart2);
@@ -111,7 +111,7 @@ describe('koto.Chart', function() {
       var layer1, layer2, transform, transformedData, myChart;
       this.transformedData = transformedData = {};
       this.transform = transform = sinon.stub().returns(transformedData);
-      this.myChart = myChart = d3.select('#test').chart('test');
+      this.myChart = myChart = new this.Test(d3.select('#test'));
       myChart.transform = transform;
 
       this.layer1 = layer1 = myChart.layer('layer1', myChart.base.append('g'), {
@@ -125,8 +125,8 @@ describe('koto.Chart', function() {
       });
       sinon.spy(layer2, 'draw');
 
-      this.attachment1 = d3.select('#test').chart('test');
-      this.attachment2 = d3.select('#test').chart('test');
+      this.attachment1 = new this.Test(d3.select('#test'));
+      this.attachment2 = new this.Test(d3.select('#test'));
       myChart.attach('test1', this.attachment1);
       myChart.attach('test2', this.attachment2);
       sinon.stub(this.attachment1, 'draw');
@@ -141,42 +141,6 @@ describe('koto.Chart', function() {
 
       expect(this.transform.callCount).to.equal(1);
       expect(this.transform.args[0][0]).to.equal(data);
-    });
-
-    it('should cascade the transform using super.', function () {
-      var grandpaTransform = sinon.spy(function(d) { return d * 2; });
-      var paTransform = sinon.spy(function(d) { return d * 3; });
-
-      koto.chart('TestTransformGrandpa', function (Chart) {
-        return class grandpa extends Chart {
-          constructor(selection) {
-            super(selection);
-          }
-          transform(data) {
-            var datum = super.transform(data);
-            return grandpaTransform(datum);
-          }
-        };
-      });
-
-      koto.chart('TestTransformGrandpa').extend('TestTransformPa', function (Chart) {
-        return class pa extends Chart {
-          constructor(selection) {
-            super(selection);
-          }
-          transform(data) {
-            var datum = super.transform(data);
-            return paTransform(datum);
-          }
-        };
-      });
-
-      var chart = d3.select('#test').chart('TestTransformPa');
-
-      chart.draw(7);
-
-      expect(paTransform.calledWith(14)).to.be.true;
-      expect(grandpaTransform.calledWith(7)).to.be.true;
     });
 
     it('should invoke the draw method for each of its layers', function () {
@@ -226,13 +190,9 @@ describe('koto.Chart', function() {
   describe('#layer', function () {
     beforeEach(function () {
       var base = this.base = d3.select('#test');
-      var chart = this.chart = base.chart('test');
+      var chart = this.chart = new this.Test(d3.select('#test'));
       var layerbase = this.layerbase = base.append('g').classed('layer1', true);
       this.layer = chart.layer('testlayer', layerbase, {});
-    });
-
-    it('should create a layer with the same selection', function () {
-      expect(this.layer).to.equal(this.layerbase);
     });
 
     it('should return a layer', function () {
@@ -261,7 +221,7 @@ describe('koto.Chart', function() {
   describe('events', function () {
     beforeEach(function () {
       this.base = d3.select('#test');
-      var chart = this.chart = this.base.chart('test');
+      var chart = this.chart = new this.Test(this.base);
 
       var e1callback = this.e1callback = sinon.spy(function() {
         return this;
@@ -402,7 +362,7 @@ describe('koto.Chart', function() {
 
   describe('#config', function () {
     beforeEach(function () {
-      this.myChart = d3.select('#test').chart('test');
+      this.myChart = new this.Test(d3.select('#test'));
     });
 
     it('should return list of configs if passed with no args', function () {
@@ -446,7 +406,7 @@ describe('koto.Chart', function() {
 
 describe('#accessor', function () {
     beforeEach(function () {
-      this.myChart = d3.select('#test').chart('test');
+      this.myChart = new this.Test(d3.select('#test'));
     });
 
     it('should return list of accessors if passed with no args', function () {

@@ -7,7 +7,7 @@ function kotoAssert(test, message) {
   if (test) {
     return;
   }
-  throw new Error('[koto] ' + message);
+  throw new Error(`[koto] ${message}`);
 }
 
 export default kotoAssert;

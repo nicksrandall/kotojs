@@ -1,4 +1,5 @@
 import kotoAssert from './assert.js';
+import Layer from './layer.js';
 
 /**
  * Create a koto chart
@@ -141,7 +142,18 @@ class Chart {
       }
     }
 
-    _layer = selection.layer(options);
+    _layer = new Layer(selection);
+
+    // Set layer methods (required)
+    _layer.dataBind = options.dataBind;
+    _layer.insert = options.insert;
+
+    // Bind events (optional)
+    if ('events' in options) {
+      for (let eventName in options.events) {
+        _layer.on(eventName, options.events[eventName]);
+      }
+    }
 
     this._layers.set(name, _layer);
 
