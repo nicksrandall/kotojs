@@ -19,6 +19,27 @@
 * **iojs:** adding support for iojs and travis-ci ([3bd6ac2b](https://github.com/nicksrandall/kotojs/commit/3bd6ac2b))
 
 
+<a name"0.0.16"></a>
+### 0.0.16 (2015-04-14)
+
+
+#### Bug Fixes
+
+* **amd:** fixing the AMD module integration ([a25f858a](https://github.com/nicksrandall/kotojs/commit/a25f858a))
+* **changelog:** dynamic changelog files ([36a87527](https://github.com/nicksrandall/kotojs/commit/36a87527))
+* **gulp:** Fixing bad build process ([0c40bcc5](https://github.com/nicksrandall/kotojs/commit/0c40bcc5))
+* **mocha:** I fixed jsdom to work with tests. ([ad2e7fbc](https://github.com/nicksrandall/kotojs/commit/ad2e7fbc))
+* **options:** Removing the option class ([252af030](https://github.com/nicksrandall/kotojs/commit/252af030))
+* **transition:** fixing transitions in layers ([71b5f54f](https://github.com/nicksrandall/kotojs/commit/71b5f54f))
+* **travis-ci:** moving travis to iojs ([5a78c6a5](https://github.com/nicksrandall/kotojs/commit/5a78c6a5))
+
+
+#### Features
+
+* **chart:** adding config and accessor methods ([0e299d64](https://github.com/nicksrandall/kotojs/commit/0e299d64))
+* **iojs:** adding support for iojs and travis-ci ([3bd6ac2b](https://github.com/nicksrandall/kotojs/commit/3bd6ac2b))
+
+
 <a name"0.0.15"></a>
 ### 0.0.15 (2015-04-14)
 
