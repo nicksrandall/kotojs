@@ -1,6 +1,8 @@
 import kotoAssert from './assert.js';
 import Layer from './layer.js';
 
+kotoAssert(d3, 'd3 js is required.');
+
 /**
  * Create a koto chart
  *
@@ -53,6 +55,9 @@ class Chart {
    *                  attachments.
    */
   demux(name, data) { return data; }
+
+  preUpdate() {}
+  postUpdate() {}
 
   /**
    * A "hook" method that will allow you to run some arbitrary code before
@@ -204,6 +209,25 @@ class Chart {
     this.hasDrawn = true;
 
     this.postDraw(data);
+  }
+
+  reDraw(rawData) {
+    var layer, attachmentData;
+
+    var data = this.transform(rawData);
+
+    this.preUpdate(data);
+
+    for (layer of this._layers.values()) {
+      layer.draw(data);
+    }
+
+    for (let [attachmentName, attachment] of this._attached.entries()) {
+      attachmentData = this.demux ? this.demux(attachmentName, data) : data;
+      attachment.draw(attachmentData);
+    }
+
+    this.postUpdate(data);
   }
 
   /**

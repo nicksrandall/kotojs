@@ -235,6 +235,17 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 	var __layer = Layer;
 
+	assert(d3, 'd3 js is required.');
+
+	/**
+  * Create a koto chart
+  *
+  * @constructor
+  *
+  * @param {d3.selection} selection The chart's "base" DOM node. This should
+  *        contain any nodes that the chart generates.
+  */
+
 	var Chart = (function () {
 		function Chart(selection) {
 			_classCallCheck(this, Chart);
@@ -290,6 +301,12 @@ var _createClass = (function () { function defineProperties(target, props) { for
 			value: function demux(name, data) {
 				return data;
 			}
+		}, {
+			key: 'preUpdate',
+			value: function preUpdate() {}
+		}, {
+			key: 'postUpdate',
+			value: function postUpdate() {}
 		}, {
 			key: 'preDraw',
 
@@ -496,6 +513,71 @@ var _createClass = (function () { function defineProperties(target, props) { for
 				this.hasDrawn = true;
 
 				this.postDraw(data);
+			}
+		}, {
+			key: 'reDraw',
+			value: function reDraw(rawData) {
+				var layer, attachmentData;
+
+				var data = this.transform(rawData);
+
+				this.preUpdate(data);
+
+				var _iteratorNormalCompletion3 = true;
+				var _didIteratorError3 = false;
+				var _iteratorError3 = undefined;
+
+				try {
+					for (var _iterator3 = this._layers.values()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+						layer = _step3.value;
+
+						layer.draw(data);
+					}
+				} catch (err) {
+					_didIteratorError3 = true;
+					_iteratorError3 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+							_iterator3['return']();
+						}
+					} finally {
+						if (_didIteratorError3) {
+							throw _iteratorError3;
+						}
+					}
+				}
+
+				var _iteratorNormalCompletion4 = true;
+				var _didIteratorError4 = false;
+				var _iteratorError4 = undefined;
+
+				try {
+					for (var _iterator4 = this._attached.entries()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+						var _step4$value = _slicedToArray(_step4.value, 2);
+
+						var attachmentName = _step4$value[0];
+						var attachment = _step4$value[1];
+
+						attachmentData = this.demux ? this.demux(attachmentName, data) : data;
+						attachment.draw(attachmentData);
+					}
+				} catch (err) {
+					_didIteratorError4 = true;
+					_iteratorError4 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+							_iterator4['return']();
+						}
+					} finally {
+						if (_didIteratorError4) {
+							throw _iteratorError4;
+						}
+					}
+				}
+
+				this.postUpdate(data);
 			}
 		}, {
 			key: 'on',
