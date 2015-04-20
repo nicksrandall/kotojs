@@ -1,6 +1,6 @@
 import Chart from '../../src/chart';
 
-describe('koto.Chart', function() {
+describe('koto.Base', function() {
   'use strict';
 
   before(function () {

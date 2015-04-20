@@ -250,7 +250,7 @@ class Chart {
   }
 
   reDraw(rawData) {
-    var layer, attachmentData;
+    var layer, reAttachmentData;
 
     var data = this.transform(rawData);
 
@@ -260,9 +260,9 @@ class Chart {
       layer.draw(data);
     }
 
-    for (let [attachmentName, attachment] of this._attached.entries()) {
-      attachmentData = this.demux ? this.demux(attachmentName, data) : data;
-      attachment.draw(attachmentData);
+    for (let [reAttachmentName, reAttachment] of this._attached.entries()) {
+      reAttachmentData = this.demux ? this.demux(reAttachmentName, data) : data;
+      reAttachment.draw(attachmentData);
     }
 
     this.postUpdate(data);
