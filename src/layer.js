@@ -192,7 +192,7 @@ class Layer {
 			}
 
 			if (selection.empty()) {
-				continue;
+        continue;
 			}
 
 			// Although `selection instanceof d3.selection` is more explicit,

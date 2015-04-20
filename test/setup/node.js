@@ -1,17 +1,27 @@
 var setup = require('./setup');
 var jsdom = require('jsdom');
 
-// Setup a virtual dom to test dom manipulation.
-global.document = jsdom.jsdom('<div id="test"></div>');
+var doc = jsdom.jsdom('<div id="test"></div>');
+
 // Monkey-patch createRange support to JSDOM.
-global.document.createRange = function() {
+doc.createRange = function() {
   return {
     selectNode: function() {},
     createContextualFragment: jsdom.jsdom
   };
 };
 
-global.window = global.document.defaultView;
+var sandbox = {
+  document: doc,
+  window: doc.parentWindow,
+  setTimeout: setTimeout,
+  clearTimeout: clearTimeout,
+  Date: Date // so we can override Date.now in tests, and use deepEqual
+};
+
+for (var key in sandbox) {
+  global[key] = sandbox[key];
+}
 
 global.d3 = require('d3');
 global.chai = require('chai');
