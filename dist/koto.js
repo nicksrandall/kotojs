@@ -5,7 +5,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : typeof define === 'function' && define.amd ? define(factory) : global.Koto = factory();
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : typeof define === 'function' && define.amd ? define(factory) : global.koto = factory();
 })(this, function () {
 	'use strict';
 
@@ -94,6 +94,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 					callback: handler,
 					chart: options.chart || null
 				});
+
 				return this;
 			}
 		}, {
@@ -110,19 +111,18 @@ var _createClass = (function () { function defineProperties(target, props) { for
     * @returns {Chart} Reference to the layer instance (chaining).
     */
 			value: function off(eventName, handler) {
-
 				var handlers = this._handlers[eventName];
 				var idx;
 
 				assert(this._lifecycleRe.test(eventName), 'Unrecognized lifecycle event name specified to \'Layer#on\': \'' + eventName + '\'.');
 
 				if (!handlers) {
-					return this._base;
+					return this;
 				}
 
 				if (arguments.length === 1) {
 					handlers.length = 0;
-					return this._base;
+					return this;
 				}
 
 				for (idx = handlers.length - 1; idx > -1; --idx) {
@@ -130,6 +130,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 						handlers.splice(idx, 1);
 					}
 				}
+
 				return this;
 			}
 		}, {
@@ -235,17 +236,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 	var __layer = Layer;
 
-	assert(d3, 'd3 js is required.');
-
-	/**
-  * Create a koto chart
-  *
-  * @constructor
-  *
-  * @param {d3.selection} selection The chart's "base" DOM node. This should
-  *        contain any nodes that the chart generates.
-  */
-
 	var Chart = (function () {
 		function Chart(selection) {
 			_classCallCheck(this, Chart);
@@ -253,11 +243,48 @@ var _createClass = (function () { function defineProperties(target, props) { for
 			this.base = selection; // Container for chart @type {d3.selection}.
 			this.hasDrawn = false; // Has this chart been drawn at lease once?
 
+			function baseExtend(dst, objs) {
+				function isObject(value) {
+					return value !== null && typeof value === 'object';
+				}
+				function isFunction(value) {
+					return typeof value === 'function';
+				}
+				for (var i = 0, ii = objs.length; i < ii; ++i) {
+					var obj = objs[i];
+					if (!isObject(obj) && !isFunction(obj)) {
+						continue;
+					}
+
+					var keys = Object.keys(obj);
+					for (var j = 0, jj = keys.length; j < jj; j++) {
+						var key = keys[j];
+						var src = obj[key];
+						dst[key] = src;
+					}
+				}
+				return dst;
+			}
+
+			this.merge = {
+				configs: function configs() {
+					var merged = baseExtend({}, arguments);
+					this.config(merged);
+					return merged;
+				},
+				accessors: function accessors() {
+					var merged = baseExtend({}, arguments);
+					this.accessor(merged);
+					return merged;
+				} };
+
+			// exposed properties
+			this.configs = new Map();
+
 			// private
 			this._layers = new Map();
 			this._attached = new Map();
 			this._events = new Map();
-			this._configs = new Map();
 			this._accessors = new Map();
 		}
 
@@ -383,6 +410,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
     * @returns {Layer}
     */
 			value: function layer(name, selection, options) {
+				var _Chart = this;
 				var _layer;
 
 				if (arguments.length === 1) {
@@ -407,6 +435,11 @@ var _createClass = (function () { function defineProperties(target, props) { for
 				this._layers.set(name, _layer);
 
 				selection._chart = this;
+
+				_layer.remove = function () {
+					_Chart._layers['delete'](name);
+					return this;
+				};
 
 				return _layer;
 			}
@@ -747,23 +780,37 @@ var _createClass = (function () { function defineProperties(target, props) { for
     */
 			value: function config(nameOrObject, value) {
 				var key;
+				var definition;
+
 				if (arguments.length === 0) {
-					return this._configs;
+					return this.configs;
 				}
 
 				if (arguments.length === 1) {
 					if (typeof nameOrObject === 'object') {
 						for (key in nameOrObject) {
-							this._configs.set(key, nameOrObject[key]);
+							if (this.configs.has(key)) {
+								definition = this.configs.get(key);
+								definition.value = nameOrObject[key];
+								this.configs.set(key, definition); // redundant?
+							} else {
+								console.warn('config with name ' + nameOrObject + ' is not defined.');
+							}
 						}
 						return this;
 					}
-					assert(this._configs.has(nameOrObject), '' + nameOrObject + ' is not a valid option.');
-					return this._configs.get(nameOrObject);
+					assert(this.configs.has(nameOrObject), '' + nameOrObject + ' is not a valid option.');
+					return this.configs.get(nameOrObject).value;
 				}
 
 				if (arguments.length === 2) {
-					this._configs.set(nameOrObject, value);
+					if (this.configs.has(nameOrObject)) {
+						definition = this.configs.get(nameOrObject);
+						definition.value = value;
+						this.configs.set(nameOrObject, definition);
+					} else {
+						console.warn('config with name ' + nameOrObject + ' is not defined.');
+					}
 					return this;
 				}
 			}
@@ -805,6 +852,13 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 	var _chart = Chart;
 
-	return _chart;
+	assert(d3, 'd3 js is required.');
+
+	var koto = {};
+	koto.Base = _chart;
+
+	var index = koto;
+
+	return index;
 });
 //# sourceMappingURL=./koto.js.map

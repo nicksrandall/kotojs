@@ -1,8 +1,6 @@
 import kotoAssert from './assert.js';
 import Layer from './layer.js';
 
-kotoAssert(d3, 'd3 js is required.');
-
 /**
  * Create a koto chart
  *
@@ -16,11 +14,45 @@ class Chart {
     this.base = selection; // Container for chart @type {d3.selection}.
       this.hasDrawn = false; // Has this chart been drawn at lease once?
 
+      function baseExtend(dst, objs) {
+        function isObject(value) { return value !== null && typeof value === 'object';}
+        function isFunction(value) {return typeof value === 'function';}
+        for (var i = 0, ii = objs.length; i < ii; ++i) {
+          var obj = objs[i];
+          if (!isObject(obj) && !isFunction(obj)) {
+            continue;
+          }
+
+          var keys = Object.keys(obj);
+          for (var j = 0, jj = keys.length; j < jj; j++) {
+            var key = keys[j];
+            var src = obj[key];
+            dst[key] = src;
+          }
+        }
+        return dst;
+      }
+
+      this.merge = {
+        configs: function(){
+          var merged = baseExtend({}, arguments);
+          this.config(merged);
+          return merged;
+        },
+        accessors: function(){
+          var merged = baseExtend({}, arguments);
+          this.accessor(merged);
+          return merged;
+        },
+      };
+
+      // exposed properties
+      this.configs = new Map();
+
       // private
       this._layers = new Map();
       this._attached = new Map();
       this._events = new Map();
-      this._configs = new Map();
       this._accessors = new Map();
   }
 
@@ -126,6 +158,7 @@ class Chart {
    * @returns {Layer}
    */
   layer(name, selection, options) {
+    var _Chart = this;
     var _layer;
 
     if (arguments.length === 1) {
@@ -152,6 +185,11 @@ class Chart {
     this._layers.set(name, _layer);
 
     selection._chart = this;
+
+    _layer.remove = function () {
+      _Chart._layers.delete(name);
+      return this;
+    };
 
     return _layer;
   }
@@ -371,23 +409,37 @@ class Chart {
    */
   config(nameOrObject, value) {
     var key;
+    var definition;
+
     if (arguments.length === 0) {
-      return this._configs;
+      return this.configs;
     }
 
     if (arguments.length === 1) {
       if (typeof nameOrObject === 'object') {
         for (key in nameOrObject) {
-          this._configs.set(key, nameOrObject[key]);
+          if(this.configs.has(key)) {
+            definition = this.configs.get(key);
+            definition.value = nameOrObject[key];
+            this.configs.set(key, definition); // redundant?
+          } else {
+            console.warn(`config with name ${nameOrObject} is not defined.`);
+          }
         }
         return this;
       }
-      kotoAssert(this._configs.has(nameOrObject), `${nameOrObject} is not a valid option.`);
-      return this._configs.get(nameOrObject);
+      kotoAssert(this.configs.has(nameOrObject), `${nameOrObject} is not a valid option.`);
+      return this.configs.get(nameOrObject).value;
     }
 
     if(arguments.length === 2) {
-      this._configs.set(nameOrObject, value);
+      if(this.configs.has(nameOrObject)) {
+        definition = this.configs.get(nameOrObject);
+        definition.value = value;
+        this.configs.set(nameOrObject, definition);
+      } else {
+        console.warn(`config with name ${nameOrObject} is not defined.`);
+      }
       return this;
     }
   }

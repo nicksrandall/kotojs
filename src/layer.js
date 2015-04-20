@@ -75,6 +75,7 @@ class Layer {
 			callback: handler,
 			chart: options.chart || null
 		});
+
 		return this;
 	}
 
@@ -89,7 +90,6 @@ class Layer {
 	 * @returns {Chart} Reference to the layer instance (chaining).
 	 */
 	off(eventName, handler) {
-
 		var handlers = this._handlers[eventName];
 		var idx;
 
@@ -97,12 +97,12 @@ class Layer {
 			`Unrecognized lifecycle event name specified to 'Layer#on': '${eventName}'.`);
 
 		if (!handlers) {
-			return this._base;
+			return this;
 		}
 
 		if (arguments.length === 1) {
 			handlers.length = 0;
-			return this._base;
+			return this;
 		}
 
 		for (idx = handlers.length - 1; idx > -1; --idx) {
@@ -110,6 +110,7 @@ class Layer {
 				handlers.splice(idx, 1);
 			}
 		}
+
 		return this;
 	}
 

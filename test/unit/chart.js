@@ -7,8 +7,14 @@ describe('koto.Chart', function() {
     this.Test = class extends Chart {
       constructor(selection){
         super(selection);
+        this.configs
+          .set('width', {
+            value: 500
+          })
+          .set('color', {
+            value: 'red'
+          });
 
-        this.config('width', 500);
         this.accessor('value', function (d) {
           return d.value;
         });
@@ -393,12 +399,10 @@ describe('koto.Chart', function() {
     it('should set multiple config items when object is passed in', function () {
       this.myChart.config({
         width: 10,
-        height: 20,
         color: 'green'
       });
 
       expect(this.myChart.config('width')).to.equal(10);
-      expect(this.myChart.config('height')).to.equal(20);
       expect(this.myChart.config('color')).to.equal('green');
     });
 

@@ -74,8 +74,8 @@
     "d3": "^3.5.5"
   },
   "babelBoilerplateOptions": {
-    "entryFileName": "chart",
-    "exportVarName": "Koto",
+    "entryFileName": "index",
+    "exportVarName": "koto",
     "mochaGlobals": [
       "stub",
       "spy",
