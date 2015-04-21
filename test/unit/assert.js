@@ -8,4 +8,4 @@ describe('kotoAssert', function() {
   it('should throw error when test is falsy', function () {
     expect(kotoAssert(false, 'This should throw an error!')).to.throw(Error);
   });
-})
+});

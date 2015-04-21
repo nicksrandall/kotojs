@@ -262,7 +262,7 @@ class Chart {
 
     for (let [reAttachmentName, reAttachment] of this._attached.entries()) {
       reAttachmentData = this.demux ? this.demux(reAttachmentName, data) : data;
-      reAttachment.draw(attachmentData);
+      reAttachment.draw(reAttachmentData);
     }
 
     this.postUpdate(data);

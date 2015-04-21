@@ -204,16 +204,13 @@ gulp.task('push', function (cb) {
   changelog({
     repository: 'https://github.com/nicksrandall/kotojs',
     version: require('./package.json').version,
-    from: 'v0.0.1',
-    file: './CHANGELOG.md'
   }, function (err, log) {
-    fs.writeFileSync('CHANGELOG.md', log);
     gulp.src(['./CHANGELOG.md'])
-    .pipe(git.commit('updating changelog'))
-    .on('end', function () {
-      git.push('origin', 'master', {args: " --tags"}, function () {
-        cb();
-      })
-    });
+      .pipe(git.commit('updating changelog'))
+      .on('end', function () {
+        git.push('origin', 'master', {args: " --tags"}, function () {
+          cb();
+        })
+      });
   });
 });
