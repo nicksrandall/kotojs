@@ -205,7 +205,7 @@ gulp.task('push', function (cb) {
     repository: 'https://github.com/nicksrandall/kotojs',
     version: require('./package.json').version,
   }, function (err, log) {
-    gulp.src(['./CHANGELOG.md'])
+    gulp.src('./CHANGELOG.md')
       .pipe(git.commit('updating changelog'))
       .on('end', function () {
         git.push('origin', 'master', {args: " --tags"}, function () {
@@ -213,4 +213,11 @@ gulp.task('push', function (cb) {
         })
       });
   });
+});
+
+gulp.task('changelog', function (cb) {
+  return changelog({
+    repository: 'https://github.com/nicksrandall/kotojs',
+    version: require('./package.json').version,
+  }, cb);
 });
