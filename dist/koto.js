@@ -243,49 +243,36 @@ var _createClass = (function () { function defineProperties(target, props) { for
 			this.base = selection; // Container for chart @type {d3.selection}.
 			this.hasDrawn = false; // Has this chart been drawn at lease once?
 
-			function baseExtend(dst, objs) {
-				function isObject(value) {
-					return value !== null && typeof value === 'object';
-				}
-				function isFunction(value) {
-					return typeof value === 'function';
-				}
-				for (var i = 0, ii = objs.length; i < ii; ++i) {
-					var obj = objs[i];
-					if (!isObject(obj) && !isFunction(obj)) {
-						continue;
-					}
-
-					var keys = Object.keys(obj);
-					for (var j = 0, jj = keys.length; j < jj; j++) {
-						var key = keys[j];
-						var src = obj[key];
-						dst[key] = src;
-					}
+			function baseExtend(dst, maps) {
+				var setDst = function setDst(value, key) {
+					dst.set(key, value);
+				};
+				for (var i = 0, ii = maps.length; i < ii; ++i) {
+					var map = maps[i];
+					map.forEach(setDst);
 				}
 				return dst;
 			}
 
 			this.merge = {
-				configs: function configs() {
-					var merged = baseExtend({}, arguments);
-					this.config(merged);
+				configs: (function () {
+					var merged = baseExtend(this.configs, arguments);
 					return merged;
-				},
-				accessors: function accessors() {
-					var merged = baseExtend({}, arguments);
-					this.accessor(merged);
+				}).bind(this),
+				accessors: (function () {
+					var merged = baseExtend(this.accessors, arguments);
 					return merged;
-				} };
+				}).bind(this)
+			};
 
 			// exposed properties
 			this.configs = new Map();
+			this.accessors = new Map();
 
 			// private
 			this._layers = new Map();
 			this._attached = new Map();
 			this._events = new Map();
-			this._accessors = new Map();
 		}
 
 		_createClass(Chart, [{
@@ -328,12 +315,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
 			value: function demux(name, data) {
 				return data;
 			}
-		}, {
-			key: 'preUpdate',
-			value: function preUpdate() {}
-		}, {
-			key: 'postUpdate',
-			value: function postUpdate() {}
 		}, {
 			key: 'preDraw',
 
@@ -482,7 +463,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
     *        Chart#draw|draw method} of this chart's attachments (if any).
     */
 			value: function draw(rawData) {
-
 				var layer, attachmentData;
 
 				var data = this.transform(rawData);
@@ -546,71 +526,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
 				this.hasDrawn = true;
 
 				this.postDraw(data);
-			}
-		}, {
-			key: 'reDraw',
-			value: function reDraw(rawData) {
-				var layer, reAttachmentData;
-
-				var data = this.transform(rawData);
-
-				this.preUpdate(data);
-
-				var _iteratorNormalCompletion3 = true;
-				var _didIteratorError3 = false;
-				var _iteratorError3 = undefined;
-
-				try {
-					for (var _iterator3 = this._layers.values()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-						layer = _step3.value;
-
-						layer.draw(data);
-					}
-				} catch (err) {
-					_didIteratorError3 = true;
-					_iteratorError3 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
-							_iterator3['return']();
-						}
-					} finally {
-						if (_didIteratorError3) {
-							throw _iteratorError3;
-						}
-					}
-				}
-
-				var _iteratorNormalCompletion4 = true;
-				var _didIteratorError4 = false;
-				var _iteratorError4 = undefined;
-
-				try {
-					for (var _iterator4 = this._attached.entries()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-						var _step4$value = _slicedToArray(_step4.value, 2);
-
-						var reAttachmentName = _step4$value[0];
-						var reAttachment = _step4$value[1];
-
-						reAttachmentData = this.demux ? this.demux(reAttachmentName, data) : data;
-						reAttachment.draw(reAttachmentData);
-					}
-				} catch (err) {
-					_didIteratorError4 = true;
-					_iteratorError4 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-							_iterator4['return']();
-						}
-					} finally {
-						if (_didIteratorError4) {
-							throw _iteratorError4;
-						}
-					}
-				}
-
-				this.postUpdate(data);
 			}
 		}, {
 			key: 'on',
@@ -781,6 +696,14 @@ var _createClass = (function () { function defineProperties(target, props) { for
 			value: function config(nameOrObject, value) {
 				var key;
 				var definition;
+				var _Chart = this;
+
+				function calcultePerecentage(arr, initialValue) {
+					var min = Math.min.call(null, arr.map(function (name) {
+						return _Chart.config(name);
+					}));
+					return initialValue / min;
+				}
 
 				if (arguments.length === 0) {
 					return this.configs;
@@ -791,22 +714,53 @@ var _createClass = (function () { function defineProperties(target, props) { for
 						for (key in nameOrObject) {
 							if (this.configs.has(key)) {
 								definition = this.configs.get(key);
-								definition.value = nameOrObject[key];
-								this.configs.set(key, definition); // redundant?
+								if (definition.hasOwnProperty('setter')) {
+									definition.value = definition.setter.call(definition, nameOrObject[key]);
+								} else {
+									definition.value = nameOrObject[key];
+								}
+								if (definition.hasOwnProperty('constrain')) {
+									if (definition.constrain === true) {
+										definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
+									} else if (Array.isArray(definition.constrain)) {
+										definition.percentage = calcultePerecentage(definition.constrain, definition.value);
+									} else {
+										definition.percentage = calcultePerecentage([definition.constrain], definition.value);
+									}
+								}
+								this.configs.set(key, definition);
 							} else {
 								console.warn('config with name ' + nameOrObject + ' is not defined.');
 							}
 						}
 						return this;
 					}
+
 					assert(this.configs.has(nameOrObject), '' + nameOrObject + ' is not a valid option.');
-					return this.configs.get(nameOrObject).value;
+					definition = this.configs.get(nameOrObject);
+					if (definition.hasOwnProperty('getter')) {
+						return definition.getter.call(definition);
+					}
+					return definition.value;
 				}
 
 				if (arguments.length === 2) {
 					if (this.configs.has(nameOrObject)) {
 						definition = this.configs.get(nameOrObject);
-						definition.value = value;
+						if (definition.hasOwnProperty('setter')) {
+							definition.value = definition.setter.call(definition, value);
+						} else {
+							definition.value = value;
+						}
+						if (definition.hasOwnProperty('constrain')) {
+							if (definition.constrain === true) {
+								definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
+							} else if (Array.isArray(definition.constrain)) {
+								definition.percentage = calcultePerecentage(definition.constrain, definition.value);
+							} else {
+								definition.percentage = calcultePerecentage([definition.constrain], definition.value);
+							}
+						}
 						this.configs.set(nameOrObject, definition);
 					} else {
 						console.warn('config with name ' + nameOrObject + ' is not defined.');
@@ -828,20 +782,20 @@ var _createClass = (function () { function defineProperties(target, props) { for
 			value: function accessor(item, value) {
 				var key;
 				if (arguments.length === 0) {
-					return this._accessors;
+					return this.accessors;
 				}
 
 				if (arguments.length === 1) {
 					if (typeof item === 'string') {
-						assert(this._accessors.has(item), '' + item + ' is not a valid accessor.');
-						return this._accessors.get(item);
+						assert(this.accessors.has(item), '' + item + ' is not a valid accessor.');
+						return this.accessors.get(item);
 					} else {
 						for (key in item) {
-							this._accessors.set(key, item[key]);
+							this.accessors.set(key, item[key]);
 						}
 					}
 				} else {
-					this._accessors.set(item, value);
+					this.accessors.set(item, value);
 				}
 				return this;
 			}
