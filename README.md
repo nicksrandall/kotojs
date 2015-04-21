@@ -29,6 +29,7 @@ Browse the [Wiki](https://github.com/nicksrandall/kotojs/wiki/API-Documentation)
 Build requirements:
 
 - [iojs](https://iojs.org/en/index.html)
+  -  You can also use NODE 0.10+
 - [gulp](http://gulpjs.com/)
 
 
