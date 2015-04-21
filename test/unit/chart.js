@@ -207,7 +207,7 @@ describe('koto.Base', function() {
 
     it('should throw an error when passing invalid selection', function () {
       expect(function () {
-        this.chart.layer('bad', {}, {});
+        this.chart.layer('bad', d3.select('body'));
       }).to.throw(Error);
     });
 
@@ -221,6 +221,24 @@ describe('koto.Base', function() {
 
     it('should extend the selection with a `off` method', function () {
       expect(typeof this.layer.off).to.equal('function');
+    });
+  });
+
+  describe('#unlayer', function () {
+    beforeEach(function () {
+      var base = this.base = d3.select('#test');
+      var chart = this.chart = new this.Test(d3.select('#test'));
+      var layerbase = this.layerbase = base.append('g').classed('layer1', true);
+      this.layer = chart.layer('testlayer', layerbase, {});
+    });
+
+    it('should return a layer', function () {
+      expect(this.chart.unlayer('testlayer')).to.equal(this.layer);
+    });
+
+    it('should delete layer from list', function () {
+      this.chart.unlayer('testlayer');
+      expect(this.chart._layers.has('testlayer')).to.be.false;
     });
   });
 
@@ -405,7 +423,6 @@ describe('koto.Base', function() {
       expect(this.myChart.config('width')).to.equal(10);
       expect(this.myChart.config('color')).to.equal('green');
     });
-
   });
 
 describe('#accessor', function () {
@@ -449,5 +466,77 @@ describe('#accessor', function () {
       expect(this.myChart.accessor('item')).to.equal(func2);
     });
 
+  });
+});
+
+describe('#merge', function () {
+  beforeEach(function () {
+    var func1 = this.func1 = function (d) {
+      return d.value;
+    };
+    var func2 = this.func2 = function (d) {
+      return d.item;
+    };
+    var func3 = this.func3 = function (d) {
+      return d.name;
+    };
+    var func4 = this.func4 = function (d) {
+      return d.category;
+    };
+
+    this.Chart1 = class extends Chart {
+      constructor(selection){
+        super(selection);
+        this.configs
+          .set('width', {
+            value: 500
+          })
+          .set('color', {
+            value: 'red'
+          });
+
+        this.accessor('value', func1);
+        this.accessor('item', func2);
+      }
+    };
+    this.Chart2 = class extends Chart {
+      constructor(selection){
+        super(selection);
+        this.configs
+          .set('height', {
+            value: 500
+          })
+          .set('fill', {
+            value: 'red'
+          });
+
+        this.accessor('name', func3);
+        this.accessor('category', func4);
+      }
+    };
+    this.chart1 = new this.Chart1(d3.select('#test'));
+    this.chart2 = new this.Chart2(d3.select('#test2'));
+  });
+
+  describe('configs', function () {
+    it('should merge configs of two different charts using merge.config', function () {
+      var myChart = new this.Chart1(d3.select('#test'));
+      myChart.merge.configs(this.chart1.configs, this.chart2.configs);
+      expect(myChart.config('height')).to.equal(500);
+      expect(myChart.config('width')).to.equal(500);
+      expect(myChart.config('color')).to.equal('red');
+      expect(myChart.config('fill')).to.equal('red');
+    });
+  });
+
+  describe('accessors', function () {
+    it('should merge configs of two different charts using merge.config', function () {
+      var myChart = new this.Chart1(d3.select('#test'));
+      myChart.merge.accessors(this.chart1.accessors, this.chart2.accessors);
+      expect(myChart.accessor('value')).to.equal(this.func1);
+      expect(myChart.accessor('item')).to.equal(this.func2);
+      expect(myChart.accessor('name')).to.equal(this.func3);
+      expect(myChart.accessor('category')).to.equal(this.func4);
+    });
   });
 });

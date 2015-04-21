@@ -14,46 +14,36 @@ class Chart {
     this.base = selection; // Container for chart @type {d3.selection}.
       this.hasDrawn = false; // Has this chart been drawn at lease once?
 
-      function baseExtend(dst, objs) {
-        function isObject(value) { return value !== null && typeof value === 'object';}
-        function isFunction(value) {return typeof value === 'function';}
-        for (var i = 0, ii = objs.length; i < ii; ++i) {
-          var obj = objs[i];
-          if (!isObject(obj) && !isFunction(obj)) {
-            continue;
-          }
-
-          var keys = Object.keys(obj);
-          for (var j = 0, jj = keys.length; j < jj; j++) {
-            var key = keys[j];
-            var src = obj[key];
-            dst[key] = src;
-          }
+      function baseExtend(dst, maps) {
+        var setDst = function (value, key) {
+            dst.set(key, value);
+        };
+        for (var i = 0, ii = maps.length; i < ii; ++i) {
+          var map = maps[i];
+          map.forEach(setDst);
         }
         return dst;
       }
 
       this.merge = {
         configs: function(){
-          var merged = baseExtend({}, arguments);
-          this.config(merged);
+          var merged = baseExtend(this.configs, arguments);
           return merged;
-        },
+        }.bind(this),
         accessors: function(){
-          var merged = baseExtend({}, arguments);
-          this.accessor(merged);
+          var merged = baseExtend(this.accessors, arguments);
           return merged;
-        },
+        }.bind(this)
       };
 
       // exposed properties
       this.configs = new Map();
+      this.accessors = new Map();
 
       // private
       this._layers = new Map();
       this._attached = new Map();
       this._events = new Map();
-      this._accessors = new Map();
   }
 
   /**
@@ -87,9 +77,6 @@ class Chart {
    *                  attachments.
    */
   demux(name, data) { return data; }
-
-  preUpdate() {}
-  postUpdate() {}
 
   /**
    * A "hook" method that will allow you to run some arbitrary code before
@@ -228,7 +215,6 @@ class Chart {
    *        Chart#draw|draw method} of this chart's attachments (if any).
    */
   draw(rawData) {
-
     var layer, attachmentData;
 
     var data = this.transform(rawData);
@@ -247,25 +233,6 @@ class Chart {
     this.hasDrawn = true;
 
     this.postDraw(data);
-  }
-
-  reDraw(rawData) {
-    var layer, reAttachmentData;
-
-    var data = this.transform(rawData);
-
-    this.preUpdate(data);
-
-    for (layer of this._layers.values()) {
-      layer.draw(data);
-    }
-
-    for (let [reAttachmentName, reAttachment] of this._attached.entries()) {
-      reAttachmentData = this.demux ? this.demux(reAttachmentName, data) : data;
-      reAttachment.draw(reAttachmentData);
-    }
-
-    this.postUpdate(data);
   }
 
   /**
@@ -455,20 +422,20 @@ class Chart {
   accessor (item, value) {
     var key;
     if (arguments.length === 0) {
-      return this._accessors;
+      return this.accessors;
     }
 
     if (arguments.length === 1) {
       if (typeof item === 'string') {
-        kotoAssert(this._accessors.has(item), `${item} is not a valid accessor.`);
-        return this._accessors.get(item);
+        kotoAssert(this.accessors.has(item), `${item} is not a valid accessor.`);
+        return this.accessors.get(item);
       } else {
         for (key in item) {
-          this._accessors.set(key, item[key]);
+          this.accessors.set(key, item[key]);
         }
       }
     } else {
-      this._accessors.set(item, value);
+      this.accessors.set(item, value);
     }
     return this;
   }
