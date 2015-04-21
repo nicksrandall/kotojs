@@ -387,7 +387,11 @@ class Chart {
         for (key in nameOrObject) {
           if(this.configs.has(key)) {
             definition = this.configs.get(key);
-            definition.value = nameOrObject[key];
+            if (definition.hasOwnProperty('setter')) {
+              definition.value = definition.setter.call(definition, nameOrObject[key]);
+            } else {
+              definition.value = nameOrObject[key];
+            }
             this.configs.set(key, definition); // redundant?
           } else {
             console.warn(`config with name ${nameOrObject} is not defined.`);
@@ -396,13 +400,21 @@ class Chart {
         return this;
       }
       kotoAssert(this.configs.has(nameOrObject), `${nameOrObject} is not a valid option.`);
-      return this.configs.get(nameOrObject).value;
+      var definition = this.configs.get(nameOrObject);
+      if (definition.hasOwnProperty('getter')) {
+        return definition.getter.call(definition);
+      }
+      return definition.value;
     }
 
     if(arguments.length === 2) {
       if(this.configs.has(nameOrObject)) {
         definition = this.configs.get(nameOrObject);
-        definition.value = value;
+        if (definition.hasOwnProperty('setter')) {
+          definition.value = definition.setter.call(definition, value);
+        } else {
+          definition.value = value;
+        }
         this.configs.set(nameOrObject, definition);
       } else {
         console.warn(`config with name ${nameOrObject} is not defined.`);
