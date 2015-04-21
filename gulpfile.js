@@ -219,5 +219,10 @@ gulp.task('changelog', function (cb) {
   return changelog({
     repository: 'https://github.com/nicksrandall/kotojs',
     version: require('./package.json').version,
-  }, cb);
+    file: './CHANGELOG.md'
+  }, function (err, log) {
+    fs.appendFile('./CHANGELOG.md', log, function (err) {
+      cb();
+    });
+  });
 });
