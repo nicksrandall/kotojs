@@ -379,9 +379,18 @@ class Chart {
     var definition;
     var _Chart = this;
 
-    function calcultePerecentage (arr, initialValue) {
-      var min = Math.min.call(null, arr.map(function (name) { return _Chart.config(name); }));
-      return initialValue / min;
+    function setPercentage () {
+      function calcultePerecentage (arr, initialValue) {
+        var min = Math.min.call(null, arr.map(function (name) { return _Chart.config(name); }));
+        return initialValue / min;
+      }
+      if (definition.constrain === true) {
+        definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
+      } else if (Array.isArray(definition.constrain)) {
+        definition.percentage = calcultePerecentage(definition.constrain, definition.value);
+      } else {
+        definition.percentage = calcultePerecentage([definition.constrain], definition.value);
+      }
     }
 
     if (arguments.length === 0) {
@@ -399,13 +408,7 @@ class Chart {
               definition.value = nameOrObject[key];
             }
             if (definition.hasOwnProperty('constrain')) {
-              if (definition.constrain === true) {
-                definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
-              } else if (Array.isArray(definition.constrain)) {
-                definition.percentage = calcultePerecentage(definition.constrain, definition.value);
-              } else {
-                definition.percentage = calcultePerecentage([definition.constrain], definition.value);
-              }
+              setPercentage();
             }
             this.configs.set(key, definition);
           } else {
@@ -432,13 +435,7 @@ class Chart {
           definition.value = value;
         }
         if (definition.hasOwnProperty('constrain')) {
-          if (definition.constrain === true) {
-            definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
-          } else if (Array.isArray(definition.constrain)) {
-            definition.percentage = calcultePerecentage(definition.constrain, definition.value);
-          } else {
-            definition.percentage = calcultePerecentage([definition.constrain], definition.value);
-          }
+          setPercentage();
         }
         this.configs.set(nameOrObject, definition);
       } else {
