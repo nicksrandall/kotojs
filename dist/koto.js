@@ -550,7 +550,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 		}, {
 			key: 'reDraw',
 			value: function reDraw(rawData) {
-				var layer, attachmentData;
+				var layer, reAttachmentData;
 
 				var data = this.transform(rawData);
 
@@ -589,11 +589,11 @@ var _createClass = (function () { function defineProperties(target, props) { for
 					for (var _iterator4 = this._attached.entries()[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
 						var _step4$value = _slicedToArray(_step4.value, 2);
 
-						var attachmentName = _step4$value[0];
-						var attachment = _step4$value[1];
+						var reAttachmentName = _step4$value[0];
+						var reAttachment = _step4$value[1];
 
-						attachmentData = this.demux ? this.demux(attachmentName, data) : data;
-						attachment.draw(attachmentData);
+						reAttachmentData = this.demux ? this.demux(reAttachmentName, data) : data;
+						reAttachment.draw(reAttachmentData);
 					}
 				} catch (err) {
 					_didIteratorError4 = true;
