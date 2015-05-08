@@ -568,7 +568,6 @@ describe('#merge', function () {
       });
 
       var chart = new ExtendedChart(d3.select('#test'));
-      console.log(chart);
       expect(chart._layers.size).to.equal(2);
     });
   });

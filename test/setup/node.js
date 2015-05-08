@@ -13,7 +13,7 @@ doc.createRange = function() {
 
 var sandbox = {
   document: doc,
-  window: doc.parentWindow,
+  window: doc.defaultView,
   setTimeout: setTimeout,
   clearTimeout: clearTimeout,
   Date: Date // so we can override Date.now in tests, and use deepEqual
