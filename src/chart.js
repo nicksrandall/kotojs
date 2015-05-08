@@ -473,6 +473,31 @@ class Chart {
     }
     return this;
   }
+
+  /**
+   * This will extend a chart by passing in an object of initialize function.
+   * @param  {Object || function} init Initialize function of object with initialize method.
+   * @return {Construtor}      Chart constructor
+   */
+  static extend(init) {
+    class chart extends this {
+      constructor(selection) {
+        var key;
+        super(selection);
+
+        if (typeof init === 'function') {
+          init.call(this);
+        } else {
+          for (key in init) {
+            this[key] = init[key];
+          }
+          this.initialize.call(this);
+        }
+
+      }
+    }
+    return chart;
+  }
 }
 
 export default Chart;

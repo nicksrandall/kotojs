@@ -497,6 +497,16 @@ describe('#merge', function () {
 
         this.accessor('value', func1);
         this.accessor('item', func2);
+
+        this._nameGroup = this.base.append('g');
+        this.layer('name', this._nameGroup, {
+          dataBind: function  (d) {
+            this.selectAll('g').data(d);
+          },
+          insert: function () {
+            this.append('g');
+          }
+        });
       }
     };
     this.Chart2 = class extends Chart {
@@ -516,6 +526,51 @@ describe('#merge', function () {
     };
     this.chart1 = new this.Chart1(d3.select('#test'));
     this.chart2 = new this.Chart2(d3.select('#test2'));
+  });
+
+  describe('extend', function () {
+    it('should extend a chart when #extend method is passed a function', function () {
+
+      var ExtendedChart = this.Chart1.extend(function () {
+        this._titleGroup = this.base.append('g');
+
+        this.layer('title', this._titleGroup, {
+          dataBind: function  (d) {
+            this.selectAll('g').data(d);
+          },
+          insert: function () {
+            this.append('g');
+          }
+        });
+      });
+
+      var chart = new ExtendedChart(d3.select('#test'));
+      expect(chart._layers.size).to.equal(2);
+    });
+
+    it('should extend a chart when #extend method is passed object', function () {
+
+      var ExtendedChart = this.Chart1.extend({
+        initialize: function () {
+          this._titleGroup = this.base.append('g');
+
+          this.layer('title', this._titleGroup, {
+            dataBind: function  (d) {
+              this.selectAll('g').data(d);
+            },
+            insert: function () {
+              this.append('g');
+            }
+          });
+        },
+        transform: function (d) { return d; },
+        test: function (d) { return d; }
+      });
+
+      var chart = new ExtendedChart(d3.select('#test'));
+      console.log(chart);
+      expect(chart._layers.size).to.equal(2);
+    });
   });
 
   describe('configs', function () {

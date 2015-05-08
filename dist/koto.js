@@ -1,12 +1,18 @@
-var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+    property = _x2,
+    receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : typeof define === 'function' && define.amd ? define(factory) : global.koto = factory();
-})(this, function () {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3')) : typeof define === 'function' && define.amd ? define(['d3'], factory) : global.koto = factory(global.d3);
+})(this, function (d3) {
 	'use strict';
 
 	/**
@@ -234,7 +240,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 		return Layer;
 	})();
 
-	var __layer = Layer;
+	var layer_js = Layer;
 
 	var Chart = (function () {
 		function Chart(selection) {
@@ -411,7 +417,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 					}
 				}
 
-				_layer = new __layer(selection, options);
+				_layer = new layer_js(selection, options);
 
 				this._layers.set(name, _layer);
 
@@ -591,20 +597,10 @@ var _createClass = (function () { function defineProperties(target, props) { for
     */
 			value: function once(name, callback, context) {
 				var self = this;
-				var _once = (function (_once2) {
-					function _once() {
-						return _once2.apply(this, arguments);
-					}
-
-					_once.toString = function () {
-						return _once2.toString();
-					};
-
-					return _once;
-				})(function () {
+				var _once = function _once() {
 					self.off(name, _once);
 					callback.apply(this, arguments);
-				});
+				};
 				return this.on(name, _once, context);
 			}
 		}, {
@@ -795,6 +791,39 @@ var _createClass = (function () { function defineProperties(target, props) { for
 					this.accessors.set(item, value);
 				}
 				return this;
+			}
+		}], [{
+			key: 'extend',
+
+			/**
+    * This will extend a chart by passing in an object of initialize function.
+    * @param  {Object || function} init Initialize function of object with initialize method.
+    * @return {Construtor}      Chart constructor
+    */
+			value: function extend(init) {
+				var chart = (function (_ref) {
+					function chart(selection) {
+						_classCallCheck(this, chart);
+
+						var key;
+						_get(Object.getPrototypeOf(chart.prototype), 'constructor', this).call(this, selection);
+
+						if (typeof init === 'function') {
+							init.call(this);
+						} else {
+							for (key in init) {
+								this[key] = init[key];
+							}
+							this.initialize.call(this);
+						}
+					}
+
+					_inherits(chart, _ref);
+
+					return chart;
+				})(this);
+
+				return chart;
 			}
 		}]);
 

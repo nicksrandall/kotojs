@@ -1,3 +1,4 @@
+import d3 from 'd3';
 import kotoAssert from './assert';
 import Chart from './chart';
 
