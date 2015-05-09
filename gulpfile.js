@@ -1,29 +1,34 @@
+/// <reference path="typings/tsd.d.ts" />
+
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
-const fs = require('fs');
-const del = require('del');
-const glob = require('glob');
-const path = require('path');
-const mkdirp = require('mkdirp');
-const babelify = require('babelify');
-const isparta = require('isparta');
-const esperanto = require('esperanto');
-const browserify = require('browserify');
-const runSequence = require('run-sequence');
-const source = require('vinyl-source-stream');
+var fs = require('fs');
+var del = require('del');
+var glob = require('glob');
+var path = require('path');
+var mkdirp = require('mkdirp');
+var babelify = require('babelify');
+var isparta = require('isparta');
+var esperanto = require('esperanto');
+var browserify = require('browserify');
+var runSequence = require('run-sequence');
+var source = require('vinyl-source-stream');
 
 //tag
-const git = require('gulp-git');
-const bump = require('gulp-bump');
-const filter = require('gulp-filter');
-const tag_version = require('gulp-tag-version');
-const changelog = require('conventional-changelog');
+var git = require('gulp-git');
+var bump = require('gulp-bump');
+var filter = require('gulp-filter');
+var tag_version = require('gulp-tag-version');
+var changelog = require('conventional-changelog');
 
-const manifest = require('./package.json');
-const config = manifest.babelBoilerplateOptions;
-const mainFile = manifest.main;
-const destinationFolder = path.dirname(mainFile);
-const exportFileName = path.basename(mainFile, path.extname(mainFile));
+var manifest = require('./package.json');
+var config = manifest.babelBoilerplateOptions;
+var mainFile = manifest.main;
+var destinationFolder = path.dirname(mainFile);
+var exportFileName = path.basename(mainFile, path.extname(mainFile));
+
+// typescript
+var ts = require('gulp-typescript');
 
 // Remove the built files
 gulp.task('clean', function(cb) {
@@ -33,6 +38,10 @@ gulp.task('clean', function(cb) {
 // Remove our temporary files
 gulp.task('clean-tmp', function(cb) {
   del(['tmp'], cb);
+});
+
+gulp.task('clean-ts', function(cb) {
+  del(['ts'], cb);
 });
 
 // Send a notification when JSHint fails,
@@ -67,9 +76,9 @@ createLintTask('lint-src', ['src/**/*.js']);
 createLintTask('lint-test', ['test/**/*.js']);
 
 // Build two versions of the library
-gulp.task('build', ['lint-src', 'clean'], function(done) {
+gulp.task('build', ['clean', 'typescript'], function(done) {
   esperanto.bundle({
-    base: 'src',
+    base: 'ts',
     entry: config.entryFileName,
   }).then(function(bundle) {
     var res = bundle.toUmd({
@@ -78,12 +87,13 @@ gulp.task('build', ['lint-src', 'clean'], function(done) {
       sourceMapFile: exportFileName + '.js',
       name: config.exportVarName
     });
+    
 
     // Write the generated sourcemap
-    mkdirp.sync(destinationFolder);
+  mkdirp.sync(destinationFolder);
     fs.writeFileSync(path.join(destinationFolder, exportFileName + '.js'), res.map.toString());
 
-    $.file(exportFileName + '.js', res.code, { src: true })
+  $.file(exportFileName + '.js', res.code, { src: true })
       .pipe($.plumber())
       .pipe($.sourcemaps.init({ loadMaps: true }))
       .pipe($.babel({ blacklist: ['useStrict'] }))
@@ -100,6 +110,25 @@ gulp.task('build', ['lint-src', 'clean'], function(done) {
   })
   .catch(done);
 });
+
+gulp.task('typescript', ['clean-ts'], function (done) {
+
+  mkdirp.sync('ts');
+  
+  gulp.src('src/*.ts')
+    .pipe($.sourcemaps.init({ loadMaps: true }))
+    .pipe(ts({
+       outDir: 'ts',
+       typescript: require('typescript'),
+       target: 'ES6',
+       sortOutput: true,
+       sourceMap: true,
+    }))
+    .pipe($.sourcemaps.write('./', {addComment: false}))
+    .pipe(gulp.dest('ts'))
+    .on('end', done);
+    
+ });
 
 // Bundle our app for our unit tests
 gulp.task('browserify', function() {
@@ -151,7 +180,7 @@ gulp.task('build-in-sequence', function(callback) {
   runSequence(['lint-src', 'lint-test'], 'browserify', callback);
 });
 
-const watchFiles = ['src/**/*', 'test/**/*', 'package.json', '**/.jshintrc', '.jscsrc'];
+var watchFiles = ['src/**/*', 'test/**/*', 'package.json', '**/.jshintrc', '.jscsrc'];
 
 // Run the headless unit tests as you make changes.
 gulp.task('watch', function() {

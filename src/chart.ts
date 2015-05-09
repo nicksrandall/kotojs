@@ -1,49 +1,84 @@
-import kotoAssert from './assert.js';
-import Layer from './layer.js';
+/// <reference path="../typings/tsd.d.ts" />
+
+import kotoAssert from './assert';
+import Layer from './layer';
+
+export interface Merge {
+    configs: Function;
+    accessors: Function;
+}
+
+export interface KotoSelection extends D3.Selection {
+    _chart: Chart
+}
+
+export interface DataBind {
+	(data: any): D3.UpdateSelection;
+}
+
+export interface Insert {
+	(): D3.EnterSelection;
+}
+
+export interface Options {
+	dataBind: DataBind;
+	insert: Insert;
+	events: any;
+}
 
 /**
  * Create a koto chart
  *
- * @constructor
+ * @private
+ * @class
  *
  * @param {d3.selection} selection The chart's "base" DOM node. This should
  *        contain any nodes that the chart generates.
  */
 class Chart {
-  constructor(selection) {
+  base: D3.Selection;
+  hasDrawn : boolean;
+  merge: Merge;
+  configs: Map<any, any>;
+  accessors: Map<any, any>;
+  _layers: Map<any, any>;
+  _attached: Map<any, any>;
+  _events: Map<any, any>;
+  
+  constructor(selection: D3.Selection) {
     this.base = selection; // Container for chart @type {d3.selection}.
-      this.hasDrawn = false; // Has this chart been drawn at lease once?
+    this.hasDrawn = false; // Has this chart been drawn at lease once?
 
-      function baseExtend(dst, maps) {
-        var setDst = function (value, key) {
-            dst.set(key, value);
-        };
-        for (var i = 0, ii = maps.length; i < ii; ++i) {
-          var map = maps[i];
-          map.forEach(setDst);
-        }
-        return dst;
-      }
-
-      this.merge = {
-        configs: function(){
-          var merged = baseExtend(this.configs, arguments);
-          return merged;
-        }.bind(this),
-        accessors: function(){
-          var merged = baseExtend(this.accessors, arguments);
-          return merged;
-        }.bind(this)
+    function baseExtend(dst: Map<string, Object>, maps: Array<Map<string, Object>>) {
+      var setDst = function (value: Object, key:string) {
+          dst.set(key, value);
       };
+      for (var i = 0, ii = maps.length; i < ii; ++i) {
+        var map = maps[i];
+        map.forEach(setDst);
+      }
+      return dst;
+    }
 
-      // exposed properties
-      this.configs = new Map();
-      this.accessors = new Map();
+    this.merge = {
+      configs: function(...args){
+        var merged = baseExtend(this.configs, args);
+        return merged;
+      }.bind(this),
+      accessors: function(...args){
+        var merged = baseExtend(this.accessors, args);
+        return merged;
+      }.bind(this)
+    };
 
-      // private
-      this._layers = new Map();
-      this._attached = new Map();
-      this._events = new Map();
+    // exposed properties
+    this.configs = new Map();
+    this.accessors = new Map();
+
+    // private
+    this._layers = new Map();
+    this._attached = new Map();
+    this._events = new Map();
   }
 
   /**
@@ -89,7 +124,7 @@ class Chart {
    * @param  {[type]} data [description]
    * @return {[type]}      [description]
    */
-  preDraw() {}
+  preDraw(data: any) {}
 
   /**
    * A "hook" method that will allow you to run some arbitrary code after
@@ -102,7 +137,7 @@ class Chart {
    * @param  {[type]} data [description]
    * @return {[type]}      [description]
    */
-  postDraw() {}
+  postDraw(data: any) {}
 
   /**
    * Remove a layer from the chart.
@@ -110,7 +145,7 @@ class Chart {
    * @param {String} name The name of the layer to remove.
    * @returns {Layer} The layer removed by this operation.
    */
-  unlayer(name) {
+  unlayer(name: string) {
     var layer = this.layer(name);
 
     this._layers.delete(name);
@@ -144,7 +179,7 @@ class Chart {
    *
    * @returns {Layer}
    */
-  layer(name, selection, options) {
+  layer(name: string, selection?:KotoSelection, options?:Options) {
     var _Chart = this;
     var _layer;
 
@@ -156,7 +191,7 @@ class Chart {
     // selection argument is now set to.
     if (arguments.length === 2) {
 
-      if (typeof selection.draw === 'function') {
+      if (selection._chart) {
         selection._chart = this;
         this._layers.set(name, selection);
         return this._layers.get(name);
@@ -193,7 +228,7 @@ class Chart {
    *
    * @returns {Chart} Reference to this chart (chainable).
    */
-  attach(attachmentName, chart) {
+  attach(attachmentName: string, chart: Chart) {
     if (arguments.length === 1) {
       return this._attached.get(attachmentName);
     }
@@ -214,7 +249,7 @@ class Chart {
    *        this cart's {@link Layer|layers} (if any) and the {@link
    *        Chart#draw|draw method} of this chart's attachments (if any).
    */
-  draw(rawData) {
+  draw(rawData: any) {
     var layer, attachmentData;
 
     var data = this.transform(rawData);
@@ -258,8 +293,8 @@ class Chart {
    *
    * @returns {Chart} A reference to this chart (chainable).
    */
-  on(name, callback, context) {
-    var events;
+  on(name: string, callback: Function, context?: any) {
+    var events: Set<Object>;
     if (this._events.has(name)) {
       events = this._events.get(name);
     } else {
@@ -292,7 +327,7 @@ class Chart {
    *
    * @returns {Chart} A reference to this chart (chainable)
    */
-  once(name, callback, context) {
+  once(name:string, callback:Function, context?:any) {
     var self = this;
     var _once = function() {
       self.off(name, _once);
@@ -318,7 +353,7 @@ class Chart {
    *
    * @returns {Chart} A reference to this chart (chainable).
    */
-  off(name, callback, context) {
+  off(name:string, callback?:Function, context?:any) {
 
     // remove all events
     if (arguments.length === 0) {
@@ -374,7 +409,7 @@ class Chart {
    * @param  {mixed} value the value for config item witha that name.
    * @return {mixed} if getting, its the value. if setting it is the chart instance.
    */
-  config(nameOrObject, value) {
+  config(nameOrObject: any, value?: any) {
     var key;
     var definition;
     var _Chart = this;
@@ -453,7 +488,7 @@ class Chart {
    * @param  {function} [value] The function to update accessor item with.
    * @return {object} The chart to preserve chainability.
    */
-  accessor (item, value) {
+  accessor (item:any, value?:any) {
     var key;
     if (arguments.length === 0) {
       return this.accessors;
@@ -479,9 +514,9 @@ class Chart {
    * @param  {Object || function} init Initialize function of object with initialize method.
    * @return {Construtor}      Chart constructor
    */
-  static extend(init) {
-    class chart extends this {
-      constructor(selection) {
+  static extend(init: any) {
+    class Extended extends this {
+      constructor(selection: Selection) {
         var key;
         super(selection);
 
@@ -491,12 +526,12 @@ class Chart {
           for (key in init) {
             this[key] = init[key];
           }
-          this.initialize.call(this);
+          init.initialize.call(this);
         }
 
       }
     }
-    return chart;
+    return Extended;
   }
 }
 

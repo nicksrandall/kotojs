@@ -1,0 +1,1 @@
+{"version":3,"sources":["assert.ts"],"names":["kotoAssert"],"mappings":"AAAA,4CAA4C;AAE5C;;;;GAIG;AACH,oBAAoB,IAAa,EAAE,OAAe;IAChDA,EAAEA,CAACA,CAACA,IAAIA,CAACA,CAACA,CAACA;QACTA,MAAMA,CAACA;IACTA,CAACA;IACDA,MAAMA,IAAIA,KAAKA,CAACA,UAAUA,OAAOA,EAAEA,CAACA,CAACA;AACvCA,CAACA;AAED,eAAe,UAAU,CAAC","file":"assert.js","sourcesContent":[],"sourceRoot":"/source/"}

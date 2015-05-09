@@ -1,5 +1,24 @@
-import kotoAssert from './assert.js';
+/// <reference path="../typings/tsd.d.ts" />
 
+import kotoAssert from './assert';
+
+export interface KotoSelection extends D3.Selection {
+    _chart: any;
+}
+
+export interface DataBind {
+	(data: any): D3.UpdateSelection;
+}
+
+export interface Insert {
+	(): D3.EnterSelection;
+}
+
+export interface Options {
+	dataBind: DataBind;
+	insert: Insert;
+	events: any;
+}
 
 /**
  * Create a layer using the provided `base`. The layer instance is *not*
@@ -13,7 +32,11 @@ import kotoAssert from './assert.js';
  * @param {d3.selection} base The containing DOM node for the layer.
  */
 class Layer {
-  constructor(base, options) {
+  _base: KotoSelection;
+  _handlers: Object;
+  _lifecycleRe: RegExp;
+
+  constructor(base: KotoSelection, options?: Options) {
     this._base = base;
     this._handlers = {};
     this._lifecycleRe = /^(enter|update|merge|exit)(:transition)?$/;
@@ -38,7 +61,7 @@ class Layer {
 	 *
 	 * @param {Array} data Value passed to {@link Layer#draw}
 	 */
-	dataBind() {
+	dataBind(data:any) {
 		kotoAssert(false, 'Layers must specify a dataBind method.');
 	}
 
@@ -62,7 +85,7 @@ class Layer {
 	 *
 	 * @returns {Chart} Reference to the layer instance (chaining).
 	 */
-	on(eventName, handler, options) {
+	on(eventName: string, handler: Function, options?:any) {
 		options = options || {};
 
 		kotoAssert(this._lifecycleRe.test(eventName),
@@ -89,7 +112,7 @@ class Layer {
 	 *
 	 * @returns {Chart} Reference to the layer instance (chaining).
 	 */
-	off(eventName, handler) {
+	off(eventName:string, handler:Function) {
 		var handlers = this._handlers[eventName];
 		var idx;
 
@@ -129,14 +152,14 @@ class Layer {
 	 *
 	 * @param {Array} data Data to drive the rendering.
 	 */
-	draw(data) {
-		var bound,
-			entering,
-			events,
-			selection,
-			method,
-			handlers,
-			eventName,
+	draw(data: Array<any>) {
+        var bound,
+        	entering,
+        	events,
+        	selection,
+        	method,
+        	handlers,
+        	eventName,
       idx,
       len,
       tidx,
