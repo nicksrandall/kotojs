@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/nicksrandall/kotojs/issues"
   },
-  "homepage": "https://github.com/nicksrandall/kotojs",
+  "homepage": "http://kotojs.org",
   "devDependencies": {
     "aight": "^2.1.1",
     "babel": "^5.0.0",

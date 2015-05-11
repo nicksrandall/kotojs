@@ -1,4 +1,4 @@
-import kotoAssert from '../../src/assert.js';
+import kotoAssert from '../../src/assert';
 
 describe('kotoAssert', function() {
   it('should do nothing when test is truthy', function () {

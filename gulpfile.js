@@ -19,9 +19,6 @@ const git = require('gulp-git');
 const bump = require('gulp-bump');
 const filter = require('gulp-filter');
 const tag_version = require('gulp-tag-version');
-const changelog = require('conventional-changelog');
-
-
 
 const manifest = require('./package.json');
 const config = manifest.babelBoilerplateOptions;
@@ -238,31 +235,3 @@ function inc(importance) {
 gulp.task('patch', function() { return inc('patch'); })
 gulp.task('minor', function() { return inc('minor'); })
 gulp.task('major', function() { return inc('major'); })
-gulp.task('push', function (cb) {
-  changelog({
-    repository: 'https://github.com/nicksrandall/kotojs',
-    version: require('./package.json').version,
-  }, function (err, log) {
-    fs.appendFile('./CHANGELOG.md', log, function (err) {
-      gulp.src('./CHANGELOG.md')
-        .pipe(git.commit('updating changelog'))
-        .on('end', function () {
-          git.push('origin', 'master', {args: " --tags"}, function () {
-            cb();
-          })
-        });
-    });
-  });
-});
-
-gulp.task('changelog', function (cb) {
-  return changelog({
-    repository: 'https://github.com/nicksrandall/kotojs',
-    version: require('./package.json').version,
-    file: './CHANGELOG.md'
-  }, function (err, log) {
-    fs.appendFile('./CHANGELOG.md', log, function (err) {
-      cb();
-    });
-  });
-});
