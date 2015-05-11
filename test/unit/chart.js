@@ -535,6 +535,36 @@ describe('koto.Base', function() {
       this.myChart.config('font-size', 14);
       expect(this.setter.calledOnce).to.be.true;
     });
+
+    it('should call setter when a accessing a config passes in as object', function () {
+      this.setter = sinon.spy(function (value) {return value; });
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          setter: this.setter
+        });
+
+      this.myChart.config({
+        'font-size': 14
+      });
+      expect(this.setter.calledOnce).to.be.true;
+    });
+
+    it('should console a warning if trying to set a config that is not defined: Object', function () {
+      console.warn = sinon.spy();
+      this.myChart.config({
+        'bad': 14
+      });
+      expect(console.warn.calledOnce).to.be.true;
+    });
+
+    it('should console a warning if trying to set a config that is not defined: item/value', function () {
+      console.warn = sinon.spy();
+      this.myChart.config('bad', 14);
+      expect(console.warn.calledOnce).to.be.true;
+    });
   });
 
 describe('#accessor', function () {
