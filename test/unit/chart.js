@@ -507,6 +507,34 @@ describe('koto.Base', function() {
 
       expect(this.myChart.configs.get('font-size')).to.not.have.ownProperty('percentage');
     });
+
+    it('should call getter when a getter is specified', function () {
+      this.getter = sinon.spy(function () {return this.value; });
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          getter: this.getter
+        });
+
+      this.myChart.config('font-size');
+      expect(this.getter.calledOnce).to.be.true;
+    });
+
+    it('should call setter when a accessing a config', function () {
+      this.setter = sinon.spy(function (value) {return value; });
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          setter: this.setter
+        });
+
+      this.myChart.config('font-size', 14);
+      expect(this.setter.calledOnce).to.be.true;
+    });
   });
 
 describe('#accessor', function () {

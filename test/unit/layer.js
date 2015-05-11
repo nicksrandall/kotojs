@@ -1,3 +1,4 @@
+import Layer from '../../src/layer';
 import Chart from '../../src/chart';
 
 describe('d3.layer', function() {
@@ -13,6 +14,20 @@ describe('d3.layer', function() {
   });
 
   describe('constructor', function() {
+
+    it('should fail when `dataBind` method is not replaced', function () {
+      var layer = new Layer(d3.select('#test2'));
+      expect(function () {
+        layer.dataBind();
+      }).to.throw(Error);
+    });
+
+    it('should fail when `insert` method is not replaced', function () {
+      var layer = new Layer(d3.select('#test2'));
+      expect(function () {
+        layer.insert();
+      }).to.throw(Error);
+    });
 
     it('should extends the selection with a `draw` method', function() {
       expect(typeof this.inst.draw).to.equal('function');

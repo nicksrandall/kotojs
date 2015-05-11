@@ -167,9 +167,9 @@ class Chart {
       }
     }
 
-    _layer = new Layer(selection, options);
-
     selection._chart = this;
+
+    _layer = new Layer(selection, options);
 
     _layer.remove = function () {
       _Chart._layers.delete(name);
