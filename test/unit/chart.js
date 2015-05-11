@@ -11,6 +11,9 @@ describe('koto.Base', function() {
           .set('width', {
             value: 500
           })
+          .set('height', {
+            value: 500
+          })
           .set('color', {
             value: 'red'
           });
@@ -222,6 +225,12 @@ describe('koto.Base', function() {
     it('should extend the selection with a `off` method', function () {
       expect(typeof this.layer.off).to.equal('function');
     });
+
+    it('should re-attach layer when passed only two arguments', function () {
+      var layer = this.chart.unlayer('testlayer');
+      this.chart.layer('newLayer', layer);
+      expect(this.chart.layer('newLayer')).to.equal(this.layer);
+    });
   });
 
   describe('#unlayer', function () {
@@ -391,7 +400,7 @@ describe('koto.Base', function() {
 
     it('should return list of configs if passed with no args', function () {
       this.myChart.config('color', 'blue');
-      expect(this.myChart.config().size).to.equal(2);
+      expect(this.myChart.config().size).to.equal(3);
     });
 
     it('should get the specified default config value', function () {
@@ -422,6 +431,81 @@ describe('koto.Base', function() {
 
       expect(this.myChart.config('width')).to.equal(10);
       expect(this.myChart.config('color')).to.equal('green');
+    });
+
+    it('should calculate a percentage when a contriant boolean is passed in', function () {
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          constrain: true
+        });
+
+      this.myChart
+        .config({
+          width: 500,
+          height: 500,
+          'font-size': 12
+        });
+
+      expect(this.myChart.configs.get('font-size')).to.have.ownProperty('percentage');
+    });
+
+    it('should calculate a percentage when a contriant string is passed in', function () {
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          constrain: 'width'
+        });
+
+      this.myChart
+        .config({
+          width: 500,
+          height: 500,
+          'font-size': 12
+        });
+
+      expect(this.myChart.configs.get('font-size')).to.have.ownProperty('percentage');
+    });
+
+    it('should calculate a percentage when a contriant array is passed in', function () {
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          constrain: ['height', 'width']
+        });
+
+      this.myChart
+        .config({
+          width: 500,
+          height: 500,
+          'font-size': 12
+        });
+
+      expect(this.myChart.configs.get('font-size')).to.have.ownProperty('percentage');
+    });
+
+    it('should not calculate percentage when no constraint is passed', function () {
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px'
+        });
+
+      this.myChart
+        .config({
+          width: 500,
+          height: 500,
+          'font-size': 12
+        });
+
+      expect(this.myChart.configs.get('font-size')).to.not.have.ownProperty('percentage');
     });
   });
 

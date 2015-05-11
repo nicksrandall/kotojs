@@ -156,20 +156,18 @@ class Chart {
     // selection argument is now set to.
     if (arguments.length === 2) {
 
-      if (typeof selection.draw === 'function') {
+      if (selection instanceof Layer) {
         selection._chart = this;
         this._layers.set(name, selection);
         return this._layers.get(name);
 
       } else {
         kotoAssert(false, 'When reattaching a layer, the second argument '+
-          'must be a d3.chart layer');
+          'must be a koto layer');
       }
     }
 
     _layer = new Layer(selection, options);
-
-    this._layers.set(name, _layer);
 
     selection._chart = this;
 
@@ -177,6 +175,8 @@ class Chart {
       _Chart._layers.delete(name);
       return this;
     };
+
+    this._layers.set(name, _layer);
 
     return _layer;
   }
@@ -384,6 +384,7 @@ class Chart {
         var min = Math.min.call(null, arr.map(function (name) { return _Chart.config(name); }));
         return initialValue / min;
       }
+
       if (definition.constrain === true) {
         definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
       } else if (Array.isArray(definition.constrain)) {
@@ -427,7 +428,7 @@ class Chart {
     }
 
     if(arguments.length === 2) {
-      if(this.configs.has(nameOrObject)) {
+      if (this.configs.has(nameOrObject)) {
         definition = this.configs.get(nameOrObject);
         if (definition.hasOwnProperty('setter')) {
           definition.value = definition.setter.call(definition, value);
