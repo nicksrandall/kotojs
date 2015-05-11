@@ -1,5 +1,7 @@
 var gulp = require('gulp');
+var cp = require('child_process');
 var $ = require('gulp-load-plugins')();
+
 const fs = require('fs');
 const del = require('del');
 const glob = require('glob');
@@ -18,6 +20,8 @@ const bump = require('gulp-bump');
 const filter = require('gulp-filter');
 const tag_version = require('gulp-tag-version');
 const changelog = require('conventional-changelog');
+
+
 
 const manifest = require('./package.json');
 const config = manifest.babelBoilerplateOptions;
@@ -140,7 +144,7 @@ function test() {
 };
 
 // Lint and run our tests
-gulp.task('test', ['lint-src', 'lint-test'], function() {
+gulp.task('test', ['jsdom', 'lint-src', 'lint-test'], function() {
   require('babel/register')({ modules: 'common' });
   return test();
 });
@@ -159,13 +163,47 @@ gulp.task('watch', function() {
 });
 
 // Set up a livereload environment for our spec runner
-gulp.task('test-browser', ['build-in-sequence'], function() {
+gulp.task('test-browser', ['jsdom', 'build-in-sequence'], function() {
   $.livereload.listen({port: 35729, host: 'localhost', start: true});
   return gulp.watch(watchFiles, ['build-in-sequence']);
 });
 
 // An alias of test
 gulp.task('default', ['test']);
+
+gulp.task('jsdom', function (done) {
+  var current;
+  var installCmd;
+  var version = manifest.jsdomVersions[
+
+    // Unfortunately, this is currently the only
+    // way to tell the difference between Node and iojs
+    /^v0/.test( process.version ) ? "node" : "iojs"
+  ];
+
+  try {
+    current = require( "jsdom/package.json" ).version;
+    if ( current === version ) {
+      console.log('current jsdom version is correct');
+      return done();
+    }
+  } catch ( e ) {}
+
+  // Use npm on the command-line
+  // There is no local npm
+  installCmd = cp.exec('npm install jsdom@' + version, function (error, stdout, stderr) {
+   if (error) {
+     console.log(error.stack);
+     console.log('Error code: '+error.code);
+     console.log('Signal received: '+error.signal);
+   }
+   console.log('jsdom was install successfully!');
+   console.log('Child Process STDOUT: '+stdout);
+   console.log('Child Process STDERR: '+stderr);
+ });
+
+ installCmd.on('exit', done);
+});
 
 /**
  * Bumping version number and tagging the repository with it.
