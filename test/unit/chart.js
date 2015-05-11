@@ -208,12 +208,6 @@ describe('koto.Base', function() {
       expect(this.chart.layer('testlayer')).to.equal(this.layer);
     });
 
-    it('should throw an error when passing invalid selection', function () {
-      expect(function () {
-        this.chart.layer('bad', d3.select('body'));
-      }).to.throw(Error);
-    });
-
     it('should extend the selection with a `draw` method', function () {
       expect(typeof this.layer.draw).to.equal('function');
     });
@@ -230,6 +224,13 @@ describe('koto.Base', function() {
       var layer = this.chart.unlayer('testlayer');
       this.chart.layer('newLayer', layer);
       expect(this.chart.layer('newLayer')).to.equal(this.layer);
+    });
+
+    it('should throw an error when not passed a layer to re-attach', function () {
+      this.chart.unlayer('testlayer');
+      expect(function () {
+        this.chart.layer('bad', {});
+      }).to.throw(Error);
     });
   });
 
@@ -486,6 +487,21 @@ describe('koto.Base', function() {
           height: 500,
           'font-size': 12
         });
+
+      expect(this.myChart.configs.get('font-size')).to.have.ownProperty('percentage');
+    });
+
+    it('should calculate a percentage when a contriant is passed in via key value pair of a config', function () {
+      this.myChart.configs
+        .set('font-size', {
+          description: 'font size for text',
+          value: 12,
+          units: 'px',
+          constrain: true
+        });
+
+      this.myChart
+        .config('font-size', 12);
 
       expect(this.myChart.configs.get('font-size')).to.have.ownProperty('percentage');
     });

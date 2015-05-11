@@ -162,8 +162,7 @@ class Chart {
         return this._layers.get(name);
 
       } else {
-        kotoAssert(false, 'When reattaching a layer, the second argument '+
-          'must be a koto layer');
+        kotoAssert(false, 'When reattaching a layer, the second argument must be a koto layer');
       }
     }
 
