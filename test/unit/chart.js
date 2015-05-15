@@ -115,22 +115,17 @@ describe('koto.Base', function() {
     });
   });
 
-  describe('#postDraw', function () {
+  describe('#postDraw / #postTransition', function () {
     beforeEach(function () {
       this.myChart = new this.Test(d3.select('#test'));
-      this.myChart.postDraw = function () {
-        return true;
-      };
 
-      sinon.spy(this.myChart, 'draw');
-      sinon.spy(this.myChart, 'postDraw');
+      this.myChart.postDraw = sinon.spy();
+      this.spy = sinon.spy();
 
       this.layer1 = this.myChart.layer('layer1', this.myChart.base.append('g'), {
         dataBind: function(data) { return this.data(data); },
         insert: function() { return this.append('g'); }
       });
-
-      this.spy = sinon.spy();
 
       this.layer1.on('merge:transition', function () {
         this.duration(250);
@@ -142,6 +137,7 @@ describe('koto.Base', function() {
         dataBind: function(data) { return this.data(data); },
         insert: function() { return this.append('g'); }
       });
+
       this.layer2.on('merge:transition', function () {
         this.duration(250);
       });
@@ -150,16 +146,30 @@ describe('koto.Base', function() {
 
     });
 
-    it('should call postDraw when transitioned layers have finished rendering', function (done) {
+    it('should call postDraw after draw, regardless of transitions', function (done) {
       var self = this;
       setTimeout(function () {
         this.spy();
       }.bind(this), 200);
 
-      this.myChart.postDraw = function () {
-        expect(self.spy.calledBefore(self.myChart.postDraw)).to.be.true;
+      this.myChart.postTransition = sinon.spy(function () {
+        expect(self.spy.calledAfter(self.myChart.postDraw)).to.be.true;
         done();
-      };
+      });
+
+      this.myChart.draw([1,2,3]);
+    });
+
+    it('should call postTransition when transitioned layers have finished rendering', function (done) {
+      var self = this;
+      setTimeout(function () {
+        this.spy();
+      }.bind(this), 200);
+
+      this.myChart.postTransition = sinon.spy(function () {
+        expect(self.spy.calledBefore(self.myChart.postTransition)).to.be.true;
+        done();
+      });
 
       this.myChart.draw([1,2,3]);
     });

@@ -91,6 +91,8 @@ class Chart {
    * include it as part of a chart definition, and then rely on d3.chart to
    * invoke it when you draw the chart with {@link Chart#draw}.
    *
+   * Note 2: a `postDraw` event is also fired when appropriate;
+   *
    * @param  {[type]} data [description]
    * @return {[type]}      [description]
    */
@@ -105,9 +107,24 @@ class Chart {
    * invoke it when you draw the chart with {@link Chart#draw}.
    *
    * @param  {[type]} data [description]
-   * @return {[type]}      [description]
    */
   postDraw() {}
+
+  /**
+   * A "hook" method that will allow you to run some arbitrary code after
+   * {@link Chart#draw} is called AND after all transitions for all layers
+   * and attached charts have been completed. This will run everytime
+   * {@link Chart#draw} is called.
+   *
+   * Note: you will most likely never call this method directly, but rather
+   * include it as part of a chart definition, and then rely on d3.chart to
+   * invoke it when you draw the chart with {@link Chart#draw}.
+   *
+   * Note 2: a `postTransition` event is also fired when appropriate;
+   *
+   * @param  {[type]} data
+   */
+  postTransition() {}
 
   /**
    * Remove a layer from the chart.
@@ -240,8 +257,12 @@ class Chart {
 
     this.promise = Promise.all(promises);
 
+    this.postDraw();
+    this.trigger('postDraw', data);
+
     this.promise.then(function () {
-      this.postDraw(data);
+      this.postTransition(data);
+      this.trigger('postTransition', data);
     }.bind(this));
   }
 

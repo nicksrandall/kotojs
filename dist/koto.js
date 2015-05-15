@@ -158,7 +158,41 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     * @param {Array} data Data to drive the rendering.
     */
 			value: function draw(data) {
-				var bound, entering, events, selection, method, handlers, eventName, idx, len, tidx, tlen;
+				var bound,
+				    entering,
+				    events,
+				    selection,
+				    method,
+				    handlers,
+				    eventName,
+				    idx,
+				    len,
+				    tidx,
+				    tlen,
+				    promises = [];
+
+				function endall(transition, callback) {
+					var n = 0;
+					if (transition.size() === 0) {
+						callback();
+					} else {
+						transition.each(function () {
+							++n;
+						}).each('interrupt.promise', function () {
+							callback.apply(this, arguments);
+						}).each('end.promise', function () {
+							if (! --n) {
+								callback.apply(this, arguments);
+							}
+						});
+					}
+				}
+
+				function promiseCallback(resolve) {
+					selection.call(endall, function () {
+						resolve(true);
+					});
+				}
 
 				bound = this.dataBind.call(this._base, data);
 
@@ -231,8 +265,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 						for (tlen = handlers.length, tidx = 0; tidx < tlen; ++tidx) {
 							selection._chart = handlers[tidx].chart || this._base._chart;
 							selection.call(handlers[tidx].callback);
+							promises.push(new Promise(promiseCallback));
 						}
 					}
+					this.promise = Promise.all(promises);
 				}
 			}
 		}]);
@@ -274,11 +310,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 			// exposed properties
 			this.configs = new Map();
 			this.accessors = new Map();
+			this.promise = null;
 
 			// private
 			this._layers = new Map();
 			this._attached = new Map();
 			this._events = new Map();
+
+			// alias
+			this.c = this.config;
+			this.a = this.accessor;
 		}
 
 		_createClass(Chart, [{
@@ -332,6 +373,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     * include it as part of a chart definition, and then rely on d3.chart to
     * invoke it when you draw the chart with {@link Chart#draw}.
     *
+    * Note 2: a `postDraw` event is also fired when appropriate;
+    *
     * @param  {[type]} data [description]
     * @return {[type]}      [description]
     */
@@ -348,9 +391,26 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     * invoke it when you draw the chart with {@link Chart#draw}.
     *
     * @param  {[type]} data [description]
-    * @return {[type]}      [description]
     */
 			value: function postDraw() {}
+		}, {
+			key: 'postTransition',
+
+			/**
+    * A "hook" method that will allow you to run some arbitrary code after
+    * {@link Chart#draw} is called AND after all transitions for all layers
+    * and attached charts have been completed. This will run everytime
+    * {@link Chart#draw} is called.
+    *
+    * Note: you will most likely never call this method directly, but rather
+    * include it as part of a chart definition, and then rely on d3.chart to
+    * invoke it when you draw the chart with {@link Chart#draw}.
+    *
+    * Note 2: a `postTransition` event is also fired when appropriate;
+    *
+    * @param  {[type]} data
+    */
+			value: function postTransition() {}
 		}, {
 			key: 'unlayer',
 
@@ -408,25 +468,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				// selection argument is now set to.
 				if (arguments.length === 2) {
 
-					if (typeof selection.draw === 'function') {
+					if (selection instanceof layer_js) {
 						selection._chart = this;
 						this._layers.set(name, selection);
 						return this._layers.get(name);
 					} else {
-						assert(false, 'When reattaching a layer, the second argument ' + 'must be a d3.chart layer');
+						assert(false, 'When reattaching a layer, the second argument must be a koto layer');
 					}
 				}
 
-				_layer = new layer_js(selection, options);
-
-				this._layers.set(name, _layer);
-
 				selection._chart = this;
+
+				_layer = new layer_js(selection, options);
 
 				_layer.remove = function () {
 					_Chart._layers['delete'](name);
 					return this;
 				};
+
+				this._layers.set(name, _layer);
 
 				return _layer;
 			}
@@ -469,7 +529,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     *        Chart#draw|draw method} of this chart's attachments (if any).
     */
 			value: function draw(rawData) {
-				var layer, attachmentData;
+				var layer,
+				    attachmentData,
+				    promises = [];
 
 				var data = this.transform(rawData);
 
@@ -484,6 +546,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 						layer = _step.value;
 
 						layer.draw(data);
+						promises.push(layer.promise);
 					}
 				} catch (err) {
 					_didIteratorError = true;
@@ -513,6 +576,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 						attachmentData = this.demux ? this.demux(attachmentName, data) : data;
 						attachment.draw(attachmentData);
+						promises.push(attachment.promise);
 					}
 				} catch (err) {
 					_didIteratorError2 = true;
@@ -531,7 +595,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 				this.hasDrawn = true;
 
-				this.postDraw(data);
+				this.promise = Promise.all(promises);
+
+				this.postDraw();
+				this.trigger('postDraw', data);
+
+				this.promise.then((function () {
+					this.postTransition(data);
+					this.trigger('postTransition', data);
+				}).bind(this));
 			}
 		}, {
 			key: 'on',
@@ -701,6 +773,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 						}));
 						return initialValue / min;
 					}
+
 					if (definition.constrain === true) {
 						definition.percentage = calcultePerecentage(['width', 'height'], definition.value);
 					} else if (Array.isArray(definition.constrain)) {

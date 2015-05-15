@@ -116,6 +116,16 @@ describe('d3.layer', function() {
       expect(this.insert.callCount).to.equal(1);
     });
 
+    it('should immediately invoke callback if transition size < 0', function (done) {
+      this.layer.draw([1,2,3]);
+      // just chcking to see if the promise works
+      this.layer.promise
+        .then(function () {
+          expect(true).to.be.true;
+          done();
+        });
+    });
+
     it('should invokes the provided `insert` method in the context of the layer\'s bound `enter` selection', function() {
       this.layer.draw([]);
       expect(this.insert.calledOn(this.dataBind.returnValues[0].enter.returnValues[0])).to.be.true;

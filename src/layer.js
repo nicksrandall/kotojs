@@ -152,7 +152,10 @@ class Layer {
           .each(function() {
             ++n;
           })
-          .each('end', function() {
+          .each('interrupt.promise', function () {
+            callback.apply(this, arguments);
+          })
+          .each('end.promise', function () {
             if (!--n) {
               callback.apply(this, arguments);
             }
