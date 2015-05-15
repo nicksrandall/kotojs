@@ -140,7 +140,31 @@ class Layer {
       idx,
       len,
       tidx,
-      tlen;
+      tlen,
+      promises = [];
+
+    function endall(transition, callback) {
+      var n = 0;
+      if (transition.size() === 0) {
+        callback();
+      } else {
+        transition
+          .each(function() {
+            ++n;
+          })
+          .each('end', function() {
+            if (!--n) {
+              callback.apply(this, arguments);
+            }
+          });
+      }
+    }
+
+    function promiseCallback (resolve) {
+      selection.call(endall, function() {
+        resolve(true);
+      });
+    }
 
 		bound = this.dataBind.call(this._base, data);
 
@@ -220,8 +244,10 @@ class Layer {
         for (tlen = handlers.length, tidx = 0; tidx < tlen; ++tidx) {
           selection._chart = handlers[tidx].chart || this._base._chart;
           selection.call(handlers[tidx].callback);
+          promises.push(new Promise(promiseCallback));
         }
       }
+      this.promise = Promise.all(promises);
 		}
 	}
 }

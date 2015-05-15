@@ -115,6 +115,56 @@ describe('koto.Base', function() {
     });
   });
 
+  describe('#postDraw', function () {
+    beforeEach(function () {
+      this.myChart = new this.Test(d3.select('#test'));
+      this.myChart.postDraw = function () {
+        return true;
+      };
+
+      sinon.spy(this.myChart, 'draw');
+      sinon.spy(this.myChart, 'postDraw');
+
+      this.layer1 = this.myChart.layer('layer1', this.myChart.base.append('g'), {
+        dataBind: function(data) { return this.data(data); },
+        insert: function() { return this.append('g'); }
+      });
+
+      this.spy = sinon.spy();
+
+      this.layer1.on('merge:transition', function () {
+        this.duration(250);
+      });
+
+      this.attachment1 = new this.Test(d3.select('#test'));
+
+      this.layer2 = this.attachment1.layer('layer1', this.myChart.base.append('g'), {
+        dataBind: function(data) { return this.data(data); },
+        insert: function() { return this.append('g'); }
+      });
+      this.layer2.on('merge:transition', function () {
+        this.duration(250);
+      });
+
+      this.myChart.attach('test1', this.attachment1);
+
+    });
+
+    it('should call postDraw when transitioned layers have finished rendering', function (done) {
+      var self = this;
+      setTimeout(function () {
+        this.spy();
+      }.bind(this), 200);
+
+      this.myChart.postDraw = function () {
+        expect(self.spy.calledBefore(self.myChart.postDraw)).to.be.true;
+        done();
+      };
+
+      this.myChart.draw([1,2,3]);
+    });
+  });
+
   describe('#draw', function () {
     beforeEach(function () {
       var layer1, layer2, transform, transformedData, myChart;

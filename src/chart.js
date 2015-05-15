@@ -39,6 +39,7 @@ class Chart {
     // exposed properties
     this.configs = new Map();
     this.accessors = new Map();
+    this.promise = null;
 
     // private
     this._layers = new Map();
@@ -218,7 +219,7 @@ class Chart {
    *        Chart#draw|draw method} of this chart's attachments (if any).
    */
   draw(rawData) {
-    var layer, attachmentData;
+    var layer, attachmentData, promises = [];
 
     var data = this.transform(rawData);
 
@@ -226,16 +227,22 @@ class Chart {
 
     for (layer of this._layers.values()) {
       layer.draw(data);
+      promises.push(layer.promise);
     }
 
     for (let [attachmentName, attachment] of this._attached.entries()) {
       attachmentData = this.demux ? this.demux(attachmentName, data) : data;
       attachment.draw(attachmentData);
+      promises.push(attachment.promise);
     }
 
     this.hasDrawn = true;
 
-    this.postDraw(data);
+    this.promise = Promise.all(promises);
+
+    this.promise.then(function () {
+      this.postDraw(data);
+    }.bind(this));
   }
 
   /**
