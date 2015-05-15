@@ -8,3 +8,5 @@ after_success:
   - npm run coveralls
   - npm install -g codeclimate-test-reporter
   - codeclimate < coverage/lcov.info
+notifications:
+  hipchat: 89737010c48533c3532d8a10b10e2b@KotoJS
