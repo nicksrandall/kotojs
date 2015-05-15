@@ -12,38 +12,42 @@ import Layer from './layer.js';
 class Chart {
   constructor(selection) {
     this.base = selection; // Container for chart @type {d3.selection}.
-      this.hasDrawn = false; // Has this chart been drawn at lease once?
+    this.hasDrawn = false; // Has this chart been drawn at lease once?
 
-      function baseExtend(dst, maps) {
-        var setDst = function (value, key) {
-            dst.set(key, value);
-        };
-        for (var i = 0, ii = maps.length; i < ii; ++i) {
-          var map = maps[i];
-          map.forEach(setDst);
-        }
-        return dst;
-      }
-
-      this.merge = {
-        configs: function(){
-          var merged = baseExtend(this.configs, arguments);
-          return merged;
-        }.bind(this),
-        accessors: function(){
-          var merged = baseExtend(this.accessors, arguments);
-          return merged;
-        }.bind(this)
+    function baseExtend(dst, maps) {
+      var setDst = function (value, key) {
+          dst.set(key, value);
       };
+      for (var i = 0, ii = maps.length; i < ii; ++i) {
+        var map = maps[i];
+        map.forEach(setDst);
+      }
+      return dst;
+    }
 
-      // exposed properties
-      this.configs = new Map();
-      this.accessors = new Map();
+    this.merge = {
+      configs: function(){
+        var merged = baseExtend(this.configs, arguments);
+        return merged;
+      }.bind(this),
+      accessors: function(){
+        var merged = baseExtend(this.accessors, arguments);
+        return merged;
+      }.bind(this)
+    };
 
-      // private
-      this._layers = new Map();
-      this._attached = new Map();
-      this._events = new Map();
+    // exposed properties
+    this.configs = new Map();
+    this.accessors = new Map();
+
+    // private
+    this._layers = new Map();
+    this._attached = new Map();
+    this._events = new Map();
+
+    // alias
+    this.c = this.config;
+    this.a = this.accessor;
   }
 
   /**
