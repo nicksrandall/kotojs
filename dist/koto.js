@@ -547,6 +547,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				var data = this.transform(rawData);
 
 				this.preDraw(data);
+				this.trigger('preDraw', data);
 
 				var _iteratorNormalCompletion = true;
 				var _didIteratorError = false;

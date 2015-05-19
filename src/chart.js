@@ -245,6 +245,7 @@ class Chart {
     var data = this.transform(rawData);
 
     this.preDraw(data);
+    this.trigger('preDraw', data);
 
     for (layer of this._layers.values()) {
       layer.draw(data);
