@@ -11,7 +11,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3')) : typeof define === 'function' && define.amd ? define(['d3'], factory) : global.koto = factory(global.d3);
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3')) : typeof define === 'function' && define.amd ? define(['d3'], factory) : global.Koto = factory(global.d3);
 })(this, function (d3) {
 	'use strict';
 
@@ -27,7 +27,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		throw new Error('[koto] ' + message);
 	}
 
-	var assert = kotoAssert;
+	var assert_js = kotoAssert;
 
 	var Layer = (function () {
 		function Layer(base, options) {
@@ -61,7 +61,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     * @param {Array} data Value passed to {@link Layer#draw}
     */
 			value: function dataBind() {
-				assert(false, 'Layers must specify a dataBind method.');
+				assert_js(false, 'Layers must specify a dataBind method.');
 			}
 		}, {
 			key: 'insert',
@@ -72,7 +72,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     * Layer instances.
     */
 			value: function insert() {
-				assert(false, 'Layers must specify an `insert` method.');
+				assert_js(false, 'Layers must specify an `insert` method.');
 			}
 		}, {
 			key: 'on',
@@ -91,7 +91,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 			value: function on(eventName, handler, options) {
 				options = options || {};
 
-				assert(this._lifecycleRe.test(eventName), 'Unrecognized lifecycle event name specified to \'Layer#on\': \'' + eventName + '\'.');
+				assert_js(this._lifecycleRe.test(eventName), 'Unrecognized lifecycle event name specified to \'Layer#on\': \'' + eventName + '\'.');
 
 				if (!(eventName in this._handlers)) {
 					this._handlers[eventName] = [];
@@ -120,7 +120,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				var handlers = this._handlers[eventName];
 				var idx;
 
-				assert(this._lifecycleRe.test(eventName), 'Unrecognized lifecycle event name specified to \'Layer#on\': \'' + eventName + '\'.');
+				assert_js(this._lifecycleRe.test(eventName), 'Unrecognized lifecycle event name specified to \'Layer#on\': \'' + eventName + '\'.');
 
 				if (!handlers) {
 					return this;
@@ -196,8 +196,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 				bound = this.dataBind.call(this._base, data);
 
-				assert(bound instanceof d3.selection, 'Invalid selection defined by `Layer#dataBind` method.');
-				assert(bound.enter, 'Layer selection not properly bound.');
+				assert_js(bound instanceof d3.selection, 'Invalid selection defined by `Layer#dataBind` method.');
+				assert_js(bound.enter, 'Layer selection not properly bound.');
 
 				entering = bound.enter();
 				entering._chart = this._base._chart;
@@ -245,7 +245,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 					// it fails in IE8, so we use duck typing to maintain
 					// compatability.
 
-					assert(selection && selection instanceof d3.selection, 'Invalid selection defined for ' + eventName + ' lifecycle event.');
+					assert_js(selection && selection instanceof d3.selection, 'Invalid selection defined for ' + eventName + ' lifecycle event.');
 
 					handlers = this._handlers[eventName];
 
@@ -277,6 +277,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	})();
 
 	var layer_js = Layer;
+
+	assert_js(d3, 'd3 js is required.');
+
+	/**
+  * Create a koto chart
+  *
+  * @constructor
+  *
+  * @param {d3.selection} selection The chart's "base" DOM node. This should
+  *        contain any nodes that the chart generates.
+  */
 
 	var Chart = (function () {
 		function Chart(selection) {
@@ -473,7 +484,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 						this._layers.set(name, selection);
 						return this._layers.get(name);
 					} else {
-						assert(false, 'When reattaching a layer, the second argument must be a koto layer');
+						assert_js(false, 'When reattaching a layer, the second argument must be a koto layer');
 					}
 				}
 
@@ -808,7 +819,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 						return this;
 					}
 
-					assert(this.configs.has(nameOrObject), '' + nameOrObject + ' is not a valid option.');
+					assert_js(this.configs.has(nameOrObject), '' + nameOrObject + ' is not a valid option.');
 					definition = this.configs.get(nameOrObject);
 					if (definition.hasOwnProperty('getter')) {
 						return definition.getter.call(definition);
@@ -853,7 +864,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 				if (arguments.length === 1) {
 					if (typeof item === 'string') {
-						assert(this.accessors.has(item), '' + item + ' is not a valid accessor.');
+						assert_js(this.accessors.has(item), '' + item + ' is not a valid accessor.');
 						return this.accessors.get(item);
 					} else {
 						for (key in item) {
@@ -905,13 +916,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	var _chart = Chart;
 
-	assert(d3, 'd3 js is required.');
-
-	var koto = {};
-	koto.Base = _chart;
-
-	var index = koto;
-
-	return index;
+	return _chart;
 });
 //# sourceMappingURL=./koto.js.map

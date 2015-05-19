@@ -77,8 +77,8 @@
     "iojs": "5.3.0"
   },
   "babelBoilerplateOptions": {
-    "entryFileName": "index",
-    "exportVarName": "koto",
+    "entryFileName": "chart",
+    "exportVarName": "Koto",
     "mochaGlobals": [
       "stub",
       "spy",

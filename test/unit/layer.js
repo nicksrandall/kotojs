@@ -1,11 +1,11 @@
 import Layer from '../../src/layer';
-import Chart from '../../src/chart';
+import Koto from '../../src/chart';
 
 describe('d3.layer', function() {
   'use strict';
 
   before(function () {
-    this.Test = Chart;
+    this.Test = Koto;
     this.chart = new this.Test(d3.select('#test'));
     this.inst = this.chart.layer('layer', d3.select('#test2'), {
       dataBind: function () {},

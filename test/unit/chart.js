@@ -1,10 +1,10 @@
-import Chart from '../../src/chart';
+import Koto from '../../src/chart';
 
 describe('koto.Base', function() {
   'use strict';
 
   before(function () {
-    this.Test = class extends Chart {
+    this.Test = class extends Koto {
       constructor(selection){
         super(selection);
         this.configs
@@ -702,7 +702,7 @@ describe('#merge', function () {
       return d.category;
     };
 
-    this.Chart1 = class extends Chart {
+    this.Chart1 = class extends Koto {
       constructor(selection){
         super(selection);
         this.configs
@@ -727,7 +727,7 @@ describe('#merge', function () {
         });
       }
     };
-    this.Chart2 = class extends Chart {
+    this.Chart2 = class extends Koto {
       constructor(selection){
         super(selection);
         this.configs
