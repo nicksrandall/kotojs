@@ -252,7 +252,7 @@ class Chart {
       promises.push(layer.promise);
     }
 
-    for (let [attachmentName, attachment] of this._attached.entries()) {
+    for (var [attachmentName, attachment] of this._attached.entries()) {
       attachmentData = this.demux ? this.demux(attachmentName, data) : data;
       attachment.draw(attachmentData);
       promises.push(attachment.promise);

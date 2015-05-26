@@ -87,7 +87,17 @@ gulp.task('build', ['lint-src', 'clean'], function(done) {
     $.file(exportFileName + '.js', res.code, { src: true })
       .pipe($.plumber())
       .pipe($.sourcemaps.init({ loadMaps: true }))
-      .pipe($.babel({ blacklist: ['useStrict'] }))
+      .pipe($.babel({
+        blacklist: ['useStrict'],
+        loose: [
+          'es6.forOf',
+          'es6.classes',
+          'es6.spread',
+          'es6.destructuring',
+          'es6.properties.computed',
+          'es6.templateLiterals'
+        ]
+      }))
       .pipe($.sourcemaps.write('./', {addComment: false}))
       .pipe(gulp.dest(destinationFolder))
       .pipe($.filter(['*', '!**/*.js.map']))

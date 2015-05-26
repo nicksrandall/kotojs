@@ -25,7 +25,7 @@ class Layer {
 
       // Bind events (optional)
       if ('events' in options) {
-        for (let eventName in options.events) {
+        for (var eventName in options.events) {
           this.on(eventName, options.events[eventName]);
         }
       }
